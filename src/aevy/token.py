@@ -13,14 +13,19 @@ class TokenType(Enum):
 
     # Keywords
     FUNC = auto()
+    RETURN = auto()
     CLASS = auto()
     IF = auto()
+    ELIF = auto()
     ELSE = auto()
     FOR = auto()
     IN = auto()
     AND = auto()
     OR = auto()
     NOT = auto()
+    WHILE = auto()
+    BREAK = auto()
+    CONTINUE = auto()
 
     # Operators
     ASSIGN = auto()
@@ -43,6 +48,7 @@ class TokenType(Enum):
     COMMA = auto()
     COLON = auto()
     DOT = auto()
+    RANGE = auto()
 
     # Layout
     NEWLINE = auto()

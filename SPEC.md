@@ -234,3 +234,22 @@ silently change program behavior.
 9. Add input and type conversion.
 10. Test the language and document usage.
 11. Explore intermediate representations and native compilation.
+
+
+## Core token categories
+v0.1
+
+Names and literals
+IDENTIFIER, NUMBER, STRING, TRUE, FALSE
+
+Declaration and control-flow keywords
+FUNC, CLASS, IF, ELSE, FOR, IN
+
+Operators
+ASSIGN, PLUS, MINUS, STAR, SLASH, EQUAL_EQUAL, BANG_EQUAL, LESS, LESS_EQUAL, GREATER, GREATER_EQUAL, AND, OR, NOT
+
+Punctuation
+LPAREN, RPAREN, LBRACE, RBRACE, COMMA, COLON, DOT
+
+Layout and completion
+NEWLINE, INDENT, DEDENT, EOF

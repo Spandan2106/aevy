@@ -1,6 +1,15 @@
+
 name = "Aevy"
 age = 20
 
-show("Hello, " + name)
-show(age + 10)
-show(10 + 20 * 2)
+func greet() {
+    show("Hello, " + name)
+}
+
+greet()
+
+if age >= 18:
+    show("You are an adult.")
+
+for i in range(5):
+    show(i)

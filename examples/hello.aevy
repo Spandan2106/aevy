@@ -1,0 +1,6 @@
+name = "Aevy"
+age = 20
+
+show("Hello, " + name)
+show(age + 10)
+show(10 + 20 * 2)

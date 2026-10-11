@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass
 
 
@@ -31,6 +30,19 @@ class UnaryExpression(ASTNode):
 
 @dataclass
 class Assignment(ASTNode):
+    name: str
+    value: ASTNode
+
+
+@dataclass
+class AttributeAccess(ASTNode):
+    object_expression: ASTNode
+    name: str
+
+
+@dataclass
+class AttributeAssignment(ASTNode):
+    object_expression: ASTNode
     name: str
     value: ASTNode
 
@@ -88,7 +100,6 @@ class ContinueStatement(ASTNode):
     pass
 
 
-# Function declaration: func add(a, b) { ... }
 @dataclass
 class FunctionDeclaration(ASTNode):
     name: str
@@ -96,14 +107,18 @@ class FunctionDeclaration(ASTNode):
     body: list
 
 
-# Function call: add(10, 20)
+@dataclass
+class ClassDeclaration(ASTNode):
+    name: str
+    methods: list
+
+
 @dataclass
 class FunctionCall(ASTNode):
     callee: ASTNode
     arguments: list
 
 
-# Return statement: return expression
 @dataclass
 class ReturnStatement(ASTNode):
     value: object = None

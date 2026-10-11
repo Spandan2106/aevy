@@ -12,13 +12,21 @@ def run(source):
 
 def main():
     source = """
-func factorial(n) {
-    if n <= 1:
-        return 1
-    return n * factorial(n - 1)
+class Counter {
+    func init(value) {
+        self.value = value
+    }
+
+    func display() {
+        show(self.value)
+    }
 }
 
-show(factorial(5))
+a = Counter(10)
+b = Counter(50)
+
+a.display()
+b.display()
 """
 
     run(source)

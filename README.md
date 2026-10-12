@@ -169,6 +169,19 @@ The current entry point executes the source program configured in `src/aevy/__ma
 - [ ] Packaging and a more convenient command-line interface
 - [ ] First stable prototype release
 
+## Automated Tests
+
+Run the interpreter regression tests from the project root:
+
+```powershell
+python -m unittest discover -s tests -v
+```
+
+The suite covers arithmetic, functions and return values, recursion, range loops,
+inheritance-based polymorphism, `super` calls, private and public attributes, and
+undefined-variable errors. Add a regression test whenever a language feature or bug
+fix is introduced.
+
 ## Development Progress
 
 **Estimated progress: approximately 35% toward a more complete, usable first version.**

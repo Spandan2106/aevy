@@ -37,6 +37,8 @@ class AevyInstance:
     def __init__(self, klass):
         self.klass = klass
         self.attributes = {}
+        # Private attributes remember which class declared them.
+        self.private_attribute_owners = {}
     def __repr__(self):
         return f"<{self.klass.name} instance>"
 class BoundMethod:
@@ -57,6 +59,7 @@ class Interpreter:
         self.classes = {}
         self.loop_depth = 0
         self.function_depth = 0
+        self.current_method_owner = None
     def interpret(self, program):
         if not isinstance(program, Program):
             raise TypeError("Expected a Program AST node")
@@ -72,7 +75,29 @@ class Interpreter:
             instance = self.evaluate(statement.object_expression)
             if not isinstance(instance, AevyInstance):
                 raise TypeError("Only objects can have attributes assigned")
-            instance.attributes[statement.name] = self.evaluate(statement.value)
+            name = statement.name
+            is_private = name.startswith("_")
+            is_self = (
+                isinstance(statement.object_expression, Variable)
+                and statement.object_expression.name == "self"
+            )
+            owner = self.current_method_owner
+            if is_private and not (
+                is_self and owner is not None
+            ):
+                raise PermissionError(
+                    f"Private attribute '{name}' can only be accessed inside "
+                    "a method of its declaring class"
+                )
+            if is_private:
+                existing_owner = instance.private_attribute_owners.get(name)
+                if existing_owner is not None and existing_owner is not owner:
+                    raise PermissionError(
+                        f"Private attribute '{name}' belongs to class "
+                        f"'{existing_owner.name}'"
+                    )
+                instance.private_attribute_owners[name] = owner
+            instance.attributes[name] = self.evaluate(statement.value)
         elif isinstance(statement, ShowStatement):
             print(self.evaluate(statement.value))
         elif isinstance(statement, ExpressionStatement):
@@ -183,6 +208,8 @@ class Interpreter:
                 local_environment["super"] = SuperProxy(instance, parent_class)
         previous_environment = self.environment
         previous_loop_depth = self.loop_depth
+        previous_method_owner = self.current_method_owner
+        self.current_method_owner = method_owner if instance is not None else None
         self.environment = local_environment
         self.loop_depth = 0
         self.function_depth += 1
@@ -193,6 +220,7 @@ class Interpreter:
         finally:
             self.environment = previous_environment
             self.loop_depth = previous_loop_depth
+            self.current_method_owner = previous_method_owner
             self.function_depth -= 1
         return None
     def call_function(self, expression):
@@ -206,7 +234,8 @@ class Interpreter:
                 instance = AevyInstance(klass)
                 initializer = klass.find_method("init")
                 if initializer is not None:
-                    self.call_function_declaration(initializer, values, instance)
+                    owner = klass.find_method_owner("init")
+                    self.call_function_declaration(initializer, values, instance, owner)
                 elif values:
                     raise TypeError(
                         f"Class '{name}' has no init method and accepts no arguments"
@@ -257,6 +286,22 @@ class Interpreter:
             if not isinstance(instance, AevyInstance):
                 raise TypeError("Only objects have accessible attributes")
             if expression.name in instance.attributes:
+                if expression.name.startswith("_"):
+                    owner = instance.private_attribute_owners.get(expression.name)
+                    is_self = (
+                        isinstance(expression.object_expression, Variable)
+                        and expression.object_expression.name == "self"
+                    )
+                    if not (
+                        is_self
+                        and self.current_method_owner is not None
+                        and self.current_method_owner is owner
+                    ):
+                        owner_name = owner.name if owner is not None else "unknown"
+                        raise PermissionError(
+                            f"Private attribute '{expression.name}' of class "
+                            f"'{owner_name}' cannot be accessed here"
+                        )
                 return instance.attributes[expression.name]
             method = instance.klass.find_method(expression.name)
             if method is not None:

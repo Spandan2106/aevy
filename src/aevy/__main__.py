@@ -12,35 +12,26 @@ def run(source):
 
 def main():
     source = """
-class Animal {
-    func speak() {
-        show("Animal sound")
+
+class BankAccount {
+    func init(balance) {
+        self._balance = balance
+    }
+
+    func deposit(amount) {
+        if amount > 0:
+            self._balance = self._balance + amount
+    }
+
+    func get_balance() {
+        return self._balance
     }
 }
 
-class Dog extends Animal {
-    func speak() {
-        show("Woof!")
-    }
-}
+account = BankAccount(1000)
+account.deposit(500)
+show(account.get_balance())
 
-class Cat extends Animal {
-    func speak() {
-        show("Meow!")
-    }
-}
-
-func make_sound(animal) {
-    animal.speak()
-}
-
-dog = Dog()
-cat = Cat()
-animal = Animal()
-
-make_sound(dog)
-make_sound(cat)
-make_sound(animal)
 """
 
     run(source)

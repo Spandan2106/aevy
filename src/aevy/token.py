@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass
 from enum import Enum, auto
 
@@ -15,6 +14,7 @@ class TokenType(Enum):
     FUNC = auto()
     RETURN = auto()
     CLASS = auto()
+    EXTENDS = auto()
     IF = auto()
     ELIF = auto()
     ELSE = auto()

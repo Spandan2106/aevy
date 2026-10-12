@@ -111,6 +111,7 @@ class FunctionDeclaration(ASTNode):
 class ClassDeclaration(ASTNode):
     name: str
     methods: list
+    parent_name: str = None
 
 
 @dataclass

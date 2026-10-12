@@ -12,21 +12,30 @@ def run(source):
 
 def main():
     source = """
-class Counter {
-    func init(value) {
-        self.value = value
+class Animal {
+    func init(name) {
+        self.name = name
     }
 
-    func display() {
-        show(self.value)
+    func speak() {
+        show("Animal sound")
     }
 }
 
-a = Counter(10)
-b = Counter(50)
+class Dog extends Animal {
+    func init(name, breed) {
+        super.init(name)
+        self.breed = breed
+    }
 
-a.display()
-b.display()
+    func speak() {
+        super.speak()
+        show(self.breed)
+    }
+}
+
+pet = Dog("Rex", "Labrador")
+pet.speak()
 """
 
     run(source)

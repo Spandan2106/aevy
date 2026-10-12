@@ -65,7 +65,12 @@ class Parser:
     def class_declaration(self):
         self.consume(TokenType.CLASS, "Expected 'class'")
         name = self.consume(TokenType.IDENTIFIER, "Expected a class name").value
-        self.consume(TokenType.LBRACE, "Expected '{' after class name")
+        parent_name = None
+        if self.match(TokenType.EXTENDS):
+            parent_name = self.consume(
+                TokenType.IDENTIFIER, "Expected a parent class name after 'extends'"
+            ).value
+        self.consume(TokenType.LBRACE, "Expected '{' after class declaration")
         self.skip_newlines()
         self.match(TokenType.INDENT)
 
@@ -88,7 +93,7 @@ class Parser:
             methods.append(self.function_declaration())
 
         self.consume(TokenType.RBRACE, "Expected '}' after class body")
-        return ClassDeclaration(name, methods)
+        return ClassDeclaration(name, methods, parent_name)
 
     def function_declaration(self):
         self.consume(TokenType.FUNC, "Expected 'func'")

@@ -199,3 +199,15 @@ Aevy is currently under active personal development. Bug reports, suggestions, a
 ## License
 
 Aevy is licensed under the **MIT License**. See the [`LICENSE`](LICENSE) file for the complete license text.
+
+## Error messages
+
+Aevy reports lexer and parser errors with line and column locations where available.
+The command-line demo also prints concise, categorized error messages instead of a
+Python traceback for common language errors.
+
+Run the regression tests from the project root:
+
+```bash
+python -m unittest discover -s tests -v
+```

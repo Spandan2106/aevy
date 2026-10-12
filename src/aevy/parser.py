@@ -107,7 +107,11 @@ class Parser:
                     TokenType.IDENTIFIER, "Expected a parameter name"
                 ).value
                 if parameter in parameters:
-                    raise SyntaxError(f"Duplicate parameter '{parameter}'")
+                    token = self.previous()
+                    raise SyntaxError(
+                        f"Duplicate parameter '{parameter}' at line "
+                        f"{token.line}, column {token.column}"
+                    )
                 parameters.append(parameter)
                 if not self.match(TokenType.COMMA):
                     break

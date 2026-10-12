@@ -201,7 +201,7 @@ class Lexer:
 
             raise SyntaxError(
 
-                f"Mixed tabs and spaces at line {self.line}"
+                f"Mixed tabs and spaces at line {self.line}, column 1"
 
             )
 
@@ -221,7 +221,7 @@ class Lexer:
 
                 raise SyntaxError(
 
-                    f"Inconsistent indentation style at line {self.line}"
+                    f"Inconsistent indentation style at line {self.line}, column 1"
 
                 )
 
@@ -267,7 +267,7 @@ class Lexer:
 
                 raise SyntaxError(
 
-                    f"Invalid indentation at line {self.line}"
+                    f"Invalid indentation at line {self.line}, column 1"
 
                 )
 
@@ -627,7 +627,7 @@ class Lexer:
 
                 raise SyntaxError(
 
-                    f"Unterminated string at line {self.start_line}"
+                    f"Unterminated string at line {self.start_line}, column {self.start_column}"
 
                 )
 
@@ -639,7 +639,7 @@ class Lexer:
 
             raise SyntaxError(
 
-                f"Unterminated string at line {self.start_line}"
+                f"Unterminated string at line {self.start_line}, column {self.start_column}"
 
             )
 

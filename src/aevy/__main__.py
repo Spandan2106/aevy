@@ -13,29 +13,34 @@ def run(source):
 def main():
     source = """
 class Animal {
-    func init(name) {
-        self.name = name
-    }
-
     func speak() {
         show("Animal sound")
     }
 }
 
 class Dog extends Animal {
-    func init(name, breed) {
-        super.init(name)
-        self.breed = breed
-    }
-
     func speak() {
-        super.speak()
-        show(self.breed)
+        show("Woof!")
     }
 }
 
-pet = Dog("Rex", "Labrador")
-pet.speak()
+class Cat extends Animal {
+    func speak() {
+        show("Meow!")
+    }
+}
+
+func make_sound(animal) {
+    animal.speak()
+}
+
+dog = Dog()
+cat = Cat()
+animal = Animal()
+
+make_sound(dog)
+make_sound(cat)
+make_sound(animal)
 """
 
     run(source)

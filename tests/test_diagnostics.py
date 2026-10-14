@@ -3,6 +3,7 @@ import unittest
 from src.aevy.diagnostics import format_error
 from src.aevy.lexer import Lexer
 from src.aevy.parser import Parser
+from src.aevy.interpreter import Interpreter
 
 
 class AevyDiagnosticTests(unittest.TestCase):
@@ -28,6 +29,33 @@ class AevyDiagnosticTests(unittest.TestCase):
             format_error(PermissionError("Private attribute")),
             "Access error: Private attribute",
         )
+
+    def test_runtime_error_has_expression_location(self):
+        source = "x = 10\ny = 0\nshow(x / y)\n"
+        program = Parser(Lexer(source).scan_tokens()).parse()
+        with self.assertRaises(ZeroDivisionError) as caught:
+            Interpreter(source=source).interpret(program)
+        self.assertEqual(caught.exception.aevy_line, 3)
+        self.assertEqual(caught.exception.aevy_column, 8)
+
+    def test_formatter_shows_source_line_and_caret(self):
+        source = "x = 10\ny = 0\nshow(x / y)\n"
+        program = Parser(Lexer(source).scan_tokens()).parse()
+        with self.assertRaises(ZeroDivisionError) as caught:
+            Interpreter(source=source).interpret(program)
+        rendered = format_error(caught.exception, source)
+        self.assertIn("Arithmetic error: Division by zero", rendered)
+        self.assertIn("at line 3, column 8", rendered)
+        self.assertIn("show(x / y)", rendered)
+        self.assertIn("         ^", rendered)
+
+    def test_undefined_variable_has_exact_location(self):
+        source = "show(missing)\n"
+        program = Parser(Lexer(source).scan_tokens()).parse()
+        with self.assertRaises(NameError) as caught:
+            Interpreter(source=source).interpret(program)
+        self.assertEqual(caught.exception.aevy_line, 1)
+        self.assertEqual(caught.exception.aevy_column, 6)
 
 
 if __name__ == "__main__":

@@ -9,7 +9,7 @@ from .interpreter import Interpreter
 def run(source):
     tokens = Lexer(source).scan_tokens()
     program = Parser(tokens).parse()
-    interpreter = Interpreter()
+    interpreter = Interpreter(source=source)
     interpreter.interpret(program)
 
 
@@ -40,7 +40,7 @@ show(account.get_balance())
         run(source)
     except (SyntaxError, NameError, TypeError, PermissionError,
             RuntimeError, ValueError, ZeroDivisionError, IndexError) as error:
-        print(format_error(error), file=sys.stderr)
+        print(format_error(error, source), file=sys.stderr)
         raise SystemExit(1)
 
 

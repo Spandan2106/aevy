@@ -160,12 +160,12 @@ The current entry point executes the source program configured in `src/aevy/__ma
 - [x] Function declarations and calls
 - [x] Return values
 - [x] Recursive function execution
-- [ ] Classes and objects
-- [ ] Constructors, attributes, and instance methods
-- [ ] Inheritance
+- [x] Classes and objects
+- [x] Constructors, attributes, and instance methods
+- [x] Single inheritance, method overriding, polymorphism, and `super` calls
 - [ ] Input handling and expanded built-in functions
-- [ ] Better syntax and runtime error diagnostics
-- [ ] Automated regression and edge-case tests
+- [x] Lexer/parser diagnostics and source-aware runtime error locations
+- [x] Automated regression and edge-case tests
 - [ ] Packaging and a more convenient command-line interface
 - [ ] First stable prototype release
 
@@ -177,10 +177,10 @@ Run the interpreter regression tests from the project root:
 python -m unittest discover -s tests -v
 ```
 
-The suite covers arithmetic, functions and return values, recursion, range loops,
-inheritance-based polymorphism, `super` calls, private and public attributes, and
-undefined-variable errors. Add a regression test whenever a language feature or bug
-fix is introduced.
+The suite contains 29 tests covering arithmetic, functions and return values, recursion,
+range loops, inheritance, `super` calls, private and public attributes, loop edge cases,
+syntax diagnostics, and source-aware runtime errors. Add a regression test whenever a
+language feature or bug fix is introduced.
 
 ## Development Progress
 
@@ -203,8 +203,10 @@ Aevy is licensed under the **MIT License**. See the [`LICENSE`](LICENSE) file fo
 ## Error messages
 
 Aevy reports lexer and parser errors with line and column locations where available.
-The command-line demo also prints concise, categorized error messages instead of a
-Python traceback for common language errors.
+Runtime errors now retain the most specific available AST source location. The formatter
+can display the line, column, source line, and a caret pointing to the error. For example,
+`show(x / y)` reports division-by-zero at the `/` operator. The command-line demo prints
+concise, categorized errors instead of a Python traceback for common language errors.
 
 Run the regression tests from the project root:
 

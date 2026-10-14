@@ -52,7 +52,9 @@ class SuperProxy:
         self.instance = instance
         self.parent_class = parent_class
 class Interpreter:
-    def __init__(self):
+    def __init__(self, source=None):
+        self.source = source
+        self.source_lines = source.splitlines() if source is not None else []
         self.environment = {}
         self.global_environment = self.environment
         self.functions = {}
@@ -69,6 +71,13 @@ class Interpreter:
         for statement in statements:
             self.execute(statement)
     def execute(self, statement):
+        try:
+            return self._execute(statement)
+        except Exception as error:
+            self._attach_location(error, statement)
+            raise
+
+    def _execute(self, statement):
         if isinstance(statement, Assignment):
             self.environment[statement.name] = self.evaluate(statement.value)
         elif isinstance(statement, AttributeAssignment):
@@ -272,6 +281,21 @@ class Interpreter:
             return self.call_function_declaration(method, values, receiver, owner)
         raise RuntimeError("Only named functions and object methods can be called")
     def evaluate(self, expression):
+        try:
+            return self._evaluate(expression)
+        except Exception as error:
+            self._attach_location(error, expression)
+            raise
+
+    @staticmethod
+    def _attach_location(error, node):
+        # Preserve the most specific location: an inner expression that raised
+        # the error wins over any enclosing statement or expression.
+        if not hasattr(error, "aevy_line") and hasattr(node, "line"):
+            error.aevy_line = node.line
+            error.aevy_column = node.column
+
+    def _evaluate(self, expression):
         if isinstance(expression, Literal):
             return expression.value
         if isinstance(expression, Variable):

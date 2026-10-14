@@ -22,6 +22,11 @@ class Parser:
         return Program(statements)
 
     def statement(self):
+        token = self.peek()
+        node = self._statement()
+        return self.locate(node, token)
+
+    def _statement(self):
         if self.check(TokenType.CLASS):
             return self.class_declaration()
         if self.check(TokenType.FUNC):
@@ -252,25 +257,42 @@ class Parser:
     def expression(self):
         return self.logical_or()
 
+    @staticmethod
+    def locate(node, token):
+        # AST nodes intentionally keep source positions as metadata so their
+        # existing constructors and public API remain backward compatible.
+        node.line = token.line
+        node.column = token.column
+        return node
+
     def logical_or(self):
         expression = self.logical_and()
         while self.match(TokenType.OR):
-            operator = self.previous().value
-            expression = BinaryExpression(expression, operator, self.logical_and())
+            operator_token = self.previous()
+            expression = self.locate(
+                BinaryExpression(expression, operator_token.value, self.logical_and()),
+                operator_token,
+            )
         return expression
 
     def logical_and(self):
         expression = self.equality()
         while self.match(TokenType.AND):
-            operator = self.previous().value
-            expression = BinaryExpression(expression, operator, self.equality())
+            operator_token = self.previous()
+            expression = self.locate(
+                BinaryExpression(expression, operator_token.value, self.equality()),
+                operator_token,
+            )
         return expression
 
     def equality(self):
         expression = self.comparison()
         while self.match(TokenType.EQUAL_EQUAL, TokenType.BANG_EQUAL):
-            operator = self.previous().value
-            expression = BinaryExpression(expression, operator, self.comparison())
+            operator_token = self.previous()
+            expression = self.locate(
+                BinaryExpression(expression, operator_token.value, self.comparison()),
+                operator_token,
+            )
         return expression
 
     def comparison(self):
@@ -279,45 +301,63 @@ class Parser:
             TokenType.LESS, TokenType.LESS_EQUAL,
             TokenType.GREATER, TokenType.GREATER_EQUAL,
         ):
-            operator = self.previous().value
-            expression = BinaryExpression(expression, operator, self.term())
+            operator_token = self.previous()
+            expression = self.locate(
+                BinaryExpression(expression, operator_token.value, self.term()),
+                operator_token,
+            )
         return expression
 
     def term(self):
         expression = self.factor()
         while self.match(TokenType.PLUS, TokenType.MINUS):
-            operator = self.previous().value
-            expression = BinaryExpression(expression, operator, self.factor())
+            operator_token = self.previous()
+            expression = self.locate(
+                BinaryExpression(expression, operator_token.value, self.factor()),
+                operator_token,
+            )
         return expression
 
     def factor(self):
         expression = self.unary()
         while self.match(TokenType.STAR, TokenType.SLASH):
-            operator = self.previous().value
-            expression = BinaryExpression(expression, operator, self.unary())
+            operator_token = self.previous()
+            expression = self.locate(
+                BinaryExpression(expression, operator_token.value, self.unary()),
+                operator_token,
+            )
         return expression
 
     def unary(self):
         if self.match(TokenType.NOT, TokenType.MINUS):
-            operator = self.previous().value
-            return UnaryExpression(operator, self.unary())
+            operator_token = self.previous()
+            return self.locate(
+                UnaryExpression(operator_token.value, self.unary()), operator_token
+            )
         return self.primary()
 
     def primary(self):
         if self.match(TokenType.NUMBER, TokenType.STRING):
-            return Literal(self.previous().value)
+            token = self.previous()
+            return self.locate(Literal(token.value), token)
         if self.match(TokenType.TRUE):
-            return Literal(True)
+            token = self.previous()
+            return self.locate(Literal(True), token)
         if self.match(TokenType.FALSE):
-            return Literal(False)
+            token = self.previous()
+            return self.locate(Literal(False), token)
 
         if self.match(TokenType.IDENTIFIER):
-            expression = Variable(self.previous().value)
+            token = self.previous()
+            expression = self.locate(Variable(token.value), token)
             return self.finish_postfix(expression)
 
         if self.match(TokenType.LPAREN):
+            token = self.previous()
             expression = self.expression()
             self.consume(TokenType.RPAREN, "Expected ')' after expression")
+            if not hasattr(expression, "line"):
+                self.locate(expression, token)
             return self.finish_postfix(expression)
 
         token = self.peek()
@@ -329,12 +369,14 @@ class Parser:
         # Allows calls and property access, including object.method(...)
         while True:
             if self.match(TokenType.LPAREN):
-                expression = self.finish_call(expression)
+                token = self.previous()
+                expression = self.locate(self.finish_call(expression), token)
             elif self.match(TokenType.DOT):
+                token = self.previous()
                 name = self.consume(
                     TokenType.IDENTIFIER, "Expected a property or method name"
                 ).value
-                expression = AttributeAccess(expression, name)
+                expression = self.locate(AttributeAccess(expression, name), token)
             else:
                 break
         return expression

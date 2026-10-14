@@ -461,3 +461,15 @@ Future releases should update this specification alongside changes to the lexer,
 ## 13. License
 
 Aevy is distributed under the MIT License. See the repository's `LICENSE` file for the complete terms.
+## List iteration and collection helpers
+
+- `for item in some_list:` iterates through a list in order.
+- `for i in start..end:` remains an end-exclusive integer range loop.
+- List concatenation: `[1, 2] + [3]` creates `[1, 2, 3]`.
+- List repetition: `[7] * 3` creates `[7, 7, 7]`; the repeat count must be a non-negative integer.
+- `insert(list, index, value)` inserts at an index from `0` through the list length.
+- `remove(list, value)` removes the first matching value and raises an error if missing.
+- `index_of(list, value)` returns the first matching index or `-1` when missing.
+- `reverse(list)` reverses the list in place and returns that list.
+- `sum(list)` adds numeric elements and rejects non-numeric elements.
+- `sort(list)` returns a sorted copy and rejects values that cannot be compared with each other.

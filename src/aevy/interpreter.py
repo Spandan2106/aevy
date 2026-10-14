@@ -165,18 +165,24 @@ class Interpreter:
                     return
             self.execute_block(statement.else_branch)
         elif isinstance(statement, ForStatement):
-            start = self.evaluate(statement.start)
-            end = self.evaluate(statement.end)
-            if (
-                isinstance(start, bool) or not isinstance(start, int)
-                or isinstance(end, bool) or not isinstance(end, int)
-            ):
-                raise TypeError("For-loop range boundaries must be integers")
+            if statement.iterable is not None:
+                values = self.evaluate(statement.iterable)
+                if not isinstance(values, list):
+                    raise TypeError("For-loop iteration requires a list")
+            else:
+                start = self.evaluate(statement.start)
+                end = self.evaluate(statement.end)
+                if (
+                    isinstance(start, bool) or not isinstance(start, int)
+                    or isinstance(end, bool) or not isinstance(end, int)
+                ):
+                    raise TypeError("For-loop range boundaries must be integers")
+                values = range(start, end)
             existed = statement.variable in self.environment
             old_value = self.environment.get(statement.variable)
             self.loop_depth += 1
             try:
-                for value in range(start, end):
+                for value in values:
                     self.environment[statement.variable] = value
                     try:
                         self.execute_block(statement.body)
@@ -248,6 +254,8 @@ class Interpreter:
             "trim": (1, 1), "contains": (2, 2), "abs": (1, 1),
             "min": (2, None), "max": (2, None), "round": (1, 2),
             "append": (2, 2), "pop": (1, 1),
+            "remove": (2, 2), "insert": (3, 3), "index_of": (2, 2),
+            "reverse": (1, 1), "sum": (1, 1), "sort": (1, 1),
         }
         minimum, maximum = arities[name]
         if len(values) < minimum or (maximum is not None and len(values) > maximum):
@@ -293,6 +301,57 @@ class Interpreter:
             if not target:
                 raise IndexError("Cannot pop from an empty list")
             return target.pop()
+        if name == "remove":
+            target = values[0]
+            if not isinstance(target, list):
+                raise TypeError("Built-in 'remove' argument 1 must be a list")
+            try:
+                target.remove(values[1])
+            except ValueError:
+                raise ValueError(f"Value {values[1]!r} was not found in the list") from None
+            return None
+        if name == "insert":
+            target = values[0]
+            if not isinstance(target, list):
+                raise TypeError("Built-in 'insert' argument 1 must be a list")
+            index = values[1]
+            if isinstance(index, bool) or not isinstance(index, int):
+                raise TypeError("Built-in 'insert' argument 2 must be an integer")
+            if index < 0 or index > len(target):
+                raise IndexError(f"Insert index {index} is out of range for a list of length {len(target)}")
+            target.insert(index, values[2])
+            return None
+        if name == "index_of":
+            target = values[0]
+            if not isinstance(target, list):
+                raise TypeError("Built-in 'index_of' argument 1 must be a list")
+            try:
+                return target.index(values[1])
+            except ValueError:
+                return -1
+        if name == "reverse":
+            target = values[0]
+            if not isinstance(target, list):
+                raise TypeError("Built-in 'reverse' argument 1 must be a list")
+            target.reverse()
+            return target
+        if name == "sum":
+            target = values[0]
+            if not isinstance(target, list):
+                raise TypeError("Built-in 'sum' argument 1 must be a list")
+            total = 0
+            for item in target:
+                require_number(item)
+                total += item
+            return total
+        if name == "sort":
+            target = values[0]
+            if not isinstance(target, list):
+                raise TypeError("Built-in 'sort' argument 1 must be a list")
+            try:
+                return sorted(target)
+            except TypeError:
+                raise TypeError("Built-in 'sort' requires mutually comparable list elements") from None
         if name == "upper":
             return require_string(values[0]).upper()
         if name == "lower":
@@ -329,7 +388,7 @@ class Interpreter:
 
             # Built-ins are reserved names and are implemented explicitly so
             # Aevy programs never gain access to Python's global namespace.
-            if name in {"length", "upper", "lower", "trim", "contains", "abs", "min", "max", "round", "append", "pop"}:
+            if name in {"length", "upper", "lower", "trim", "contains", "abs", "min", "max", "round", "append", "pop", "remove", "insert", "index_of", "reverse", "sum", "sort"}:
                 return self.call_standard_library(name, values)
 
             # Built-in conversion functions are reserved names.
@@ -549,12 +608,28 @@ class Interpreter:
                 return right
             left = self.evaluate(expression.left)
             right = self.evaluate(expression.right)
-            if operator == "+": return left + right
+            if operator == "+":
+                if isinstance(left, list) or isinstance(right, list):
+                    if isinstance(left, list) and isinstance(right, list):
+                        return left + right
+                    raise TypeError("List concatenation requires two lists")
+                return left + right
             if operator == "-": return left - right
-            if operator == "*": return left * right
+            if operator == "*":
+                if isinstance(left, list) or isinstance(right, list):
+                    if isinstance(left, list) and isinstance(right, int) and not isinstance(right, bool) and right >= 0:
+                        return left * right
+                    if isinstance(right, list) and isinstance(left, int) and not isinstance(left, bool) and left >= 0:
+                        return right * left
+                    raise TypeError("List repetition requires a list and a non-negative integer")
+                return left * right
             if operator == "/": return left / right
             if operator == "==": return left == right
             if operator == "!=": return left != right
+            if operator == "in":
+                if isinstance(right, (list, str)):
+                    return left in right
+                raise TypeError("Right operand of 'in' must be a list or text")
             if operator == "<": return left < right
             if operator == "<=": return left <= right
             if operator == ">": return left > right

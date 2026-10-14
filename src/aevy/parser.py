@@ -264,10 +264,14 @@ class Parser:
         ).value
         self.consume(TokenType.IN, "Expected 'in' after loop variable")
         start = self.expression()
-        self.consume(TokenType.RANGE, "Expected '..' between range boundaries")
-        end = self.expression()
+        if self.match(TokenType.RANGE):
+            end = self.expression()
+            iterable = None
+        else:
+            end = None
+            iterable = start
         body = self.parse_indented_block("Expected an indented for-loop block")
-        return ForStatement(variable, start, end, body)
+        return ForStatement(variable, start, end, body, iterable)
 
     def while_statement(self):
         self.consume(TokenType.WHILE, "Expected 'while'")
@@ -310,10 +314,10 @@ class Parser:
 
     def equality(self):
         expression = self.comparison()
-        while self.match(TokenType.EQUAL_EQUAL, TokenType.BANG_EQUAL):
+        while self.match(TokenType.EQUAL_EQUAL, TokenType.BANG_EQUAL, TokenType.IN):
             operator_token = self.previous()
             expression = self.locate(
-                BinaryExpression(expression, operator_token.value, self.comparison()),
+                BinaryExpression(expression, "in" if operator_token.type == TokenType.IN else operator_token.value, self.comparison()),
                 operator_token,
             )
         return expression

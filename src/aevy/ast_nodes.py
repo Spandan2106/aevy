@@ -100,6 +100,7 @@ class ForStatement(ASTNode):
     start: ASTNode
     end: ASTNode
     body: list
+    iterable: ASTNode = None
 
 
 @dataclass

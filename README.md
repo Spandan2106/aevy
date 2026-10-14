@@ -265,3 +265,27 @@ Run the regression tests from the project root:
 ```bash
 python -m unittest discover -s tests -v
 ```
+
+## Lists and collection operations
+
+Aevy supports list literals, indexing, indexed assignment, nested lists, and iteration:
+
+```aevy
+numbers = [5, 2, 8, 1]
+append(numbers, 10)
+remove(numbers, 2)
+
+for item in numbers:
+    show(item)
+
+show(sum(numbers))
+show(sort(numbers))
+```
+
+Available list helpers include `append(list, value)`, `pop(list)`,
+`insert(list, index, value)`, `remove(list, value)`, `index_of(list, value)`,
+`reverse(list)`, `sum(list)`, and `sort(list)`. `index_of` returns `-1` when
+no matching value exists. `reverse` mutates and returns its list; `sort` returns
+a sorted copy. List concatenation uses `+`, and list repetition uses `*` with a
+non-negative integer. `for item in list:` iterates over a list, while the existing
+`for i in start..end:` syntax continues to use an end-exclusive integer range.

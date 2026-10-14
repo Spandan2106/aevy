@@ -23,6 +23,8 @@ Aevy is a personal language-engineering project exploring how programming langua
 - **Output:** Displays evaluated values using `show()`.
 - **User Input:** Reads a line of text with `give.input()` or `give.input("Prompt: ")`.
 - **Type Conversions:** Provides `number()`, `integer()`, `decimal()`, `text()`, and `boolean()` with validation.
+- **String Utilities:** `length()`, `upper()`, `lower()`, `trim()`, and `contains()`.
+- **Numeric Utilities:** `abs()`, `min()`, `max()`, and `round()` with argument validation.
 
 ## Example Programs
 
@@ -74,6 +76,24 @@ show(age + 1)
 `give.input()` returns text. Use `number(value)` to convert a numeric string to an integer or decimal, `integer(value)` for an integer, `decimal(value)` for a floating-point number, `text(value)` for text, and `boolean(value)` for `True` or `False`. Invalid conversions raise a readable `ValueError` rather than silently choosing a value.
 
 For deterministic automated tests, the Python `Interpreter` accepts an optional `input_func` callable; ordinary Aevy programs do not need to know about this testing hook.
+
+## Standard Library
+
+Aevy includes a small set of built-in string and numeric helpers:
+
+```text
+show(length("Aevy"))
+show(upper("hello"))
+show(lower("WORLD"))
+show(trim("  spaced text  "))
+show(contains("programming", "gram"))
+show(abs(-12))
+show(min(7, 2, 9))
+show(max(7, 2, 9))
+show(round(3.14159, 2))
+```
+
+The string functions require text arguments. `contains(text, part)` returns `True` when `part` occurs inside `text`. Numeric helpers reject booleans rather than treating them as numbers. `min()` and `max()` accept two or more numeric arguments; `round()` accepts a number and an optional integer number of decimal places. Invalid argument types or counts raise clear errors.
 
 ## Language Design
 

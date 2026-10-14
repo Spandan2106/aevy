@@ -135,6 +135,24 @@ show(age + 1)
 
 `give.input()` accepts zero or one argument. If an argument is supplied, it must be a string. Input is always returned as text; convert it explicitly before numeric calculations. When standard input reaches end-of-file, the interpreter reports a runtime error.
 
+### 3.5 Standard Library Utilities
+
+Aevy reserves the following built-in names:
+
+| Function | Behavior | Arguments |
+|---|---|---|
+| `length(text)` | Returns the number of characters in a string. | Exactly 1 string |
+| `upper(text)` | Returns the string in uppercase. | Exactly 1 string |
+| `lower(text)` | Returns the string in lowercase. | Exactly 1 string |
+| `trim(text)` | Removes whitespace from both ends of a string. | Exactly 1 string |
+| `contains(text, part)` | Checks whether `part` occurs in `text`. | Exactly 2 strings |
+| `abs(number)` | Returns the absolute value. | Exactly 1 number |
+| `min(a, b, ...)` | Returns the smallest argument. | At least 2 numbers |
+| `max(a, b, ...)` | Returns the largest argument. | At least 2 numbers |
+| `round(number[, digits])` | Rounds a number, optionally to a specified number of decimal places. | 1 number and optional integer |
+
+These helpers validate argument types. Booleans are not accepted as numeric arguments. Invalid argument types or counts raise a `TypeError`. `length()` currently accepts strings only; list and collection support is not part of this version.
+
 ## 4. Operators and Expressions
 
 ### 4.1 Arithmetic Operators

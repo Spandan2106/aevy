@@ -233,13 +233,78 @@ class Interpreter:
             self.current_method_owner = previous_method_owner
             self.function_depth -= 1
         return None
+    @staticmethod
+    def call_standard_library(name, values):
+        """Execute Aevy's small, validated standard-library built-ins."""
+        arities = {
+            "length": (1, 1), "upper": (1, 1), "lower": (1, 1),
+            "trim": (1, 1), "contains": (2, 2), "abs": (1, 1),
+            "min": (2, None), "max": (2, None), "round": (1, 2),
+        }
+        minimum, maximum = arities[name]
+        if len(values) < minimum or (maximum is not None and len(values) > maximum):
+            if maximum == minimum:
+                expected = f"exactly {minimum}"
+            elif maximum is None:
+                expected = f"at least {minimum}"
+            else:
+                expected = f"{minimum} or {maximum}"
+            raise TypeError(
+                f"Built-in '{name}' expects {expected} argument(s), received {len(values)}"
+            )
+
+        def require_string(value, position=1):
+            if not isinstance(value, str):
+                raise TypeError(
+                    f"Built-in '{name}' argument {position} must be text"
+                )
+            return value
+
+        def require_number(value, position=1):
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                raise TypeError(
+                    f"Built-in '{name}' argument {position} must be a number"
+                )
+            return value
+
+        if name == "length":
+            return len(require_string(values[0]))
+        if name == "upper":
+            return require_string(values[0]).upper()
+        if name == "lower":
+            return require_string(values[0]).lower()
+        if name == "trim":
+            return require_string(values[0]).strip()
+        if name == "contains":
+            haystack = require_string(values[0], 1)
+            needle = require_string(values[1], 2)
+            return needle in haystack
+        if name == "abs":
+            return abs(require_number(values[0]))
+        if name in {"min", "max"}:
+            numbers = [require_number(value, i + 1) for i, value in enumerate(values)]
+            return min(numbers) if name == "min" else max(numbers)
+        if name == "round":
+            number = require_number(values[0], 1)
+            digits = 0
+            if len(values) == 2:
+                digits = values[1]
+                if isinstance(digits, bool) or not isinstance(digits, int):
+                    raise TypeError("Built-in 'round' argument 2 must be an integer")
+            return round(number, digits)
+        raise RuntimeError(f"Unknown standard-library function '{name}'")
+
     def call_function(self, expression):
         if isinstance(expression.callee, Variable):
             name = expression.callee.name
             values = [self.evaluate(argument) for argument in expression.arguments]
 
-            # Built-in conversion functions are reserved names. They are handled
-            # here so user programs never need access to Python's globals.
+            # Built-ins are reserved names and are implemented explicitly so
+            # Aevy programs never gain access to Python's global namespace.
+            if name in {"length", "upper", "lower", "trim", "contains", "abs", "min", "max", "round"}:
+                return self.call_standard_library(name, values)
+
+            # Built-in conversion functions are reserved names.
             if name in {"number", "integer", "decimal", "text", "boolean"}:
                 if len(values) != 1:
                     raise TypeError(f"Built-in '{name}' expects exactly 1 argument, received {len(values)}")

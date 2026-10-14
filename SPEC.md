@@ -110,15 +110,30 @@ Type inference occurs from the assigned value. The exact rules for reassignment 
 
 ### 3.3 Built-in Conversions
 
-The prototype includes conversion operations for:
+Aevy provides these built-in conversion functions:
+
+| Function | Behavior |
+|---|---|
+| `number(value)` | Keeps a number unchanged or parses a string as an integer when possible, otherwise as a decimal number. |
+| `integer(value)` | Converts an integer, decimal number, or numeric string to an integer. |
+| `decimal(value)` | Converts a number or numeric string to a floating-point number. |
+| `text(value)` | Converts a value to its textual representation. |
+| `boolean(value)` | Accepts a boolean or the strings `True` and `False` (case-insensitive). |
+
+Each conversion function accepts exactly one argument. Invalid values raise a `ValueError`; incorrect argument counts raise a `TypeError`.
+
+### 3.4 User Input
+
+`give.input()` reads a line of text from standard input and returns it as a string. An optional string argument is displayed as a prompt:
 
 ```text
-int(value)
-float(value)
-str(value)
+name = give.input("What is your name? ")
+age = number(give.input("How old are you? "))
+show("Hello, " + name)
+show(age + 1)
 ```
 
-Their valid inputs and error behavior should be treated as implementation-defined until covered by tests and documented more precisely.
+`give.input()` accepts zero or one argument. If an argument is supplied, it must be a string. Input is always returned as text; convert it explicitly before numeric calculations. When standard input reaches end-of-file, the interpreter reports a runtime error.
 
 ## 4. Operators and Expressions
 
@@ -383,7 +398,7 @@ The current prototype does not yet define or fully implement the following langu
 - Classes and objects
 - Constructors and instance methods
 - Object attributes and inheritance
-- User input as a standard language feature
+- [x] User input as a standard language feature
 - Modules and imports
 - Exception handling
 - A formal standard library
@@ -410,7 +425,7 @@ These are potential development areas, not promises that every feature will nece
 - [ ] Improve syntax and runtime diagnostics
 - [ ] Add classes, objects, and constructors
 - [ ] Add instance methods and inheritance
-- [ ] Improve input handling and built-in functions
+- [x] Add input handling and built-in conversion functions
 - [ ] Define a stable execution and packaging workflow
 
 ## 12. Specification Status

@@ -52,8 +52,9 @@ class SuperProxy:
         self.instance = instance
         self.parent_class = parent_class
 class Interpreter:
-    def __init__(self, source=None):
+    def __init__(self, source=None, input_func=input):
         self.source = source
+        self.input_func = input_func
         self.source_lines = source.splitlines() if source is not None else []
         self.environment = {}
         self.global_environment = self.environment
@@ -236,6 +237,55 @@ class Interpreter:
         if isinstance(expression.callee, Variable):
             name = expression.callee.name
             values = [self.evaluate(argument) for argument in expression.arguments]
+
+            # Built-in conversion functions are reserved names. They are handled
+            # here so user programs never need access to Python's globals.
+            if name in {"number", "integer", "decimal", "text", "boolean"}:
+                if len(values) != 1:
+                    raise TypeError(f"Built-in '{name}' expects exactly 1 argument, received {len(values)}")
+                value = values[0]
+                try:
+                    if name == "number":
+                        if isinstance(value, bool):
+                            raise ValueError("booleans cannot be converted to numbers")
+                        if isinstance(value, (int, float)):
+                            return value
+                        if not isinstance(value, str):
+                            raise ValueError("expected a string or number")
+                        cleaned = value.strip()
+                        if not cleaned:
+                            raise ValueError("cannot convert an empty string to a number")
+                        try:
+                            return int(cleaned)
+                        except ValueError:
+                            return float(cleaned)
+                    if name == "integer":
+                        if isinstance(value, bool) or not isinstance(value, (int, float, str)):
+                            raise ValueError("expected a numeric value or numeric string")
+                        return int(value.strip()) if isinstance(value, str) else int(value)
+                    if name == "decimal":
+                        if isinstance(value, bool) or not isinstance(value, (int, float, str)):
+                            raise ValueError("expected a numeric value or numeric string")
+                        return float(value.strip()) if isinstance(value, str) else float(value)
+                    if name == "text":
+                        if value is True:
+                            return "True"
+                        if value is False:
+                            return "False"
+                        return str(value)
+                    if name == "boolean":
+                        if isinstance(value, bool):
+                            return value
+                        if isinstance(value, str):
+                            normalized = value.strip().lower()
+                            if normalized == "true":
+                                return True
+                            if normalized == "false":
+                                return False
+                        raise ValueError("expected True or False")
+                except (ValueError, OverflowError) as error:
+                    raise ValueError(f"Cannot convert value to {name}: {error}") from None
+
             if name in self.classes:
                 if name not in self.classes:
                     raise NameError(f"Undefined class '{name}'")
@@ -254,6 +304,25 @@ class Interpreter:
                 raise NameError(f"Undefined function or class '{name}'")
             return self.call_function_declaration(self.functions[name], values)
         if isinstance(expression.callee, AttributeAccess):
+            # give.input(prompt) is Aevy's built-in input syntax. Recognize it
+            # before evaluating `give`, which is not a user-defined variable.
+            if (
+                isinstance(expression.callee.object_expression, Variable)
+                and expression.callee.object_expression.name == "give"
+                and expression.callee.name == "input"
+            ):
+                if len(expression.arguments) > 1:
+                    raise TypeError(
+                        f"Built-in 'give.input' expects 0 or 1 argument, received {len(expression.arguments)}"
+                    )
+                prompt = "" if not expression.arguments else self.evaluate(expression.arguments[0])
+                if not isinstance(prompt, str):
+                    raise TypeError("The prompt passed to give.input() must be a string")
+                try:
+                    return self.input_func(prompt)
+                except EOFError:
+                    raise RuntimeError("No input was available for give.input()") from None
+
             receiver = self.evaluate(expression.callee.object_expression)
             method_name = expression.callee.name
             values = [self.evaluate(argument) for argument in expression.arguments]

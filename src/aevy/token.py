@@ -43,6 +43,8 @@ class TokenType(Enum):
     # Punctuation
     LPAREN = auto()
     RPAREN = auto()
+    LBRACKET = auto()
+    RBRACKET = auto()
     LBRACE = auto()
     RBRACE = auto()
     COMMA = auto()

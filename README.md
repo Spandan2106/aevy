@@ -24,6 +24,7 @@ Aevy is a personal language-engineering project exploring how programming langua
 - **User Input:** Reads a line of text with `give.input()` or `give.input("Prompt: ")`.
 - **Type Conversions:** Provides `number()`, `integer()`, `decimal()`, `text()`, and `boolean()` with validation.
 - **String Utilities:** `length()`, `upper()`, `lower()`, `trim()`, and `contains()`.
+- **Lists:** list literals, indexing, indexed assignment, nested lists, and list mutation.
 - **Numeric Utilities:** `abs()`, `min()`, `max()`, and `round()` with argument validation.
 
 ## Example Programs
@@ -76,6 +77,21 @@ show(age + 1)
 `give.input()` returns text. Use `number(value)` to convert a numeric string to an integer or decimal, `integer(value)` for an integer, `decimal(value)` for a floating-point number, `text(value)` for text, and `boolean(value)` for `True` or `False`. Invalid conversions raise a readable `ValueError` rather than silently choosing a value.
 
 For deterministic automated tests, the Python `Interpreter` accepts an optional `input_func` callable; ordinary Aevy programs do not need to know about this testing hook.
+
+## Lists
+
+Aevy supports list literals with square brackets, including empty and nested lists. List indexes are zero-based.
+
+```aevy
+numbers = [10, 20, 30]
+show(numbers[0])
+numbers[1] = 99
+append(numbers, 40)
+show(length(numbers))
+show(pop(numbers))
+```
+
+`append(list, value)` adds a value to the end and returns no value. `pop(list)` removes and returns the last value; calling it on an empty list raises an error. Indexes must be integers and must be in range. Lists are mutable, so assigning a list to another variable shares the same list object.
 
 ## Standard Library
 

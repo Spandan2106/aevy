@@ -575,6 +575,10 @@ class Lexer:
 
             ")": TokenType.RPAREN,
 
+            "[": TokenType.LBRACKET,
+
+            "]": TokenType.RBRACKET,
+
             "{": TokenType.LBRACE,
 
             "}": TokenType.RBRACE,

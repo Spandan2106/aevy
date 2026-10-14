@@ -141,7 +141,7 @@ Aevy reserves the following built-in names:
 
 | Function | Behavior | Arguments |
 |---|---|---|
-| `length(text)` | Returns the number of characters in a string. | Exactly 1 string |
+| `length(value)` | Returns the number of characters in a string or elements in a list. | Exactly 1 string or list |
 | `upper(text)` | Returns the string in uppercase. | Exactly 1 string |
 | `lower(text)` | Returns the string in lowercase. | Exactly 1 string |
 | `trim(text)` | Removes whitespace from both ends of a string. | Exactly 1 string |
@@ -153,7 +153,13 @@ Aevy reserves the following built-in names:
 
 These helpers validate argument types. Booleans are not accepted as numeric arguments. Invalid argument types or counts raise a `TypeError`. `length()` currently accepts strings only; list and collection support is not part of this version.
 
-## 4. Operators and Expressions
+## 4. Lists
+
+Lists use square brackets and may contain expressions, including nested lists. Empty lists are supported. Indexing is zero-based (`items[0]`) and indexed assignment is supported (`items[0] = value`). List indexes must be integers; negative and out-of-range indexes raise an `IndexError`. Indexing and indexed assignment currently require a list value.
+
+The standard library includes `append(list, value)` to mutate a list by adding a value at the end, and `pop(list)` to remove and return the final element. Popping an empty list raises an `IndexError`. Lists are mutable and variable assignment copies the reference rather than the list contents. `contains(list, value)` checks whether a value is present.
+
+## 5. Operators and Expressions
 
 ### 4.1 Arithmetic Operators
 

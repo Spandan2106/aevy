@@ -48,6 +48,24 @@ class AttributeAssignment(ASTNode):
 
 
 @dataclass
+class ListLiteral(ASTNode):
+    elements: list
+
+
+@dataclass
+class IndexAccess(ASTNode):
+    object_expression: ASTNode
+    index: ASTNode
+
+
+@dataclass
+class IndexAssignment(ASTNode):
+    object_expression: ASTNode
+    index: ASTNode
+    value: ASTNode
+
+
+@dataclass
 class ShowStatement(ASTNode):
     value: ASTNode
 

@@ -1,6 +1,7 @@
 from .ast_nodes import (
     Program, Literal, Variable, BinaryExpression, UnaryExpression,
-    Assignment, AttributeAccess, AttributeAssignment, ShowStatement,
+    Assignment, AttributeAccess, AttributeAssignment, ListLiteral,
+    IndexAccess, IndexAssignment, ShowStatement,
     ExpressionStatement, IfStatement, ForStatement, WhileStatement,
     BreakStatement, ContinueStatement, FunctionDeclaration,
     ClassDeclaration, FunctionCall, ReturnStatement,
@@ -81,6 +82,12 @@ class Interpreter:
     def _execute(self, statement):
         if isinstance(statement, Assignment):
             self.environment[statement.name] = self.evaluate(statement.value)
+        elif isinstance(statement, IndexAssignment):
+            target = self.evaluate(statement.object_expression)
+            if not isinstance(target, list):
+                raise TypeError("Indexed assignment requires a list")
+            index = self._list_index(self.evaluate(statement.index), len(target), allow_end=False)
+            target[index] = self.evaluate(statement.value)
         elif isinstance(statement, AttributeAssignment):
             instance = self.evaluate(statement.object_expression)
             if not isinstance(instance, AevyInstance):
@@ -240,6 +247,7 @@ class Interpreter:
             "length": (1, 1), "upper": (1, 1), "lower": (1, 1),
             "trim": (1, 1), "contains": (2, 2), "abs": (1, 1),
             "min": (2, None), "max": (2, None), "round": (1, 2),
+            "append": (2, 2), "pop": (1, 1),
         }
         minimum, maximum = arities[name]
         if len(values) < minimum or (maximum is not None and len(values) > maximum):
@@ -268,7 +276,23 @@ class Interpreter:
             return value
 
         if name == "length":
-            return len(require_string(values[0]))
+            value = values[0]
+            if isinstance(value, (str, list)):
+                return len(value)
+            raise TypeError("Built-in 'length' argument 1 must be text or a list")
+        if name == "append":
+            target = values[0]
+            if not isinstance(target, list):
+                raise TypeError("Built-in 'append' argument 1 must be a list")
+            target.append(values[1])
+            return None
+        if name == "pop":
+            target = values[0]
+            if not isinstance(target, list):
+                raise TypeError("Built-in 'pop' argument 1 must be a list")
+            if not target:
+                raise IndexError("Cannot pop from an empty list")
+            return target.pop()
         if name == "upper":
             return require_string(values[0]).upper()
         if name == "lower":
@@ -276,9 +300,13 @@ class Interpreter:
         if name == "trim":
             return require_string(values[0]).strip()
         if name == "contains":
-            haystack = require_string(values[0], 1)
-            needle = require_string(values[1], 2)
-            return needle in haystack
+            haystack = values[0]
+            if isinstance(haystack, str):
+                needle = require_string(values[1], 2)
+                return needle in haystack
+            if isinstance(haystack, list):
+                return values[1] in haystack
+            raise TypeError("Built-in 'contains' argument 1 must be text or a list")
         if name == "abs":
             return abs(require_number(values[0]))
         if name in {"min", "max"}:
@@ -301,7 +329,7 @@ class Interpreter:
 
             # Built-ins are reserved names and are implemented explicitly so
             # Aevy programs never gain access to Python's global namespace.
-            if name in {"length", "upper", "lower", "trim", "contains", "abs", "min", "max", "round"}:
+            if name in {"length", "upper", "lower", "trim", "contains", "abs", "min", "max", "round", "append", "pop"}:
                 return self.call_standard_library(name, values)
 
             # Built-in conversion functions are reserved names.
@@ -414,6 +442,14 @@ class Interpreter:
             owner = receiver.klass.find_method_owner(method_name)
             return self.call_function_declaration(method, values, receiver, owner)
         raise RuntimeError("Only named functions and object methods can be called")
+    @staticmethod
+    def _list_index(index, length, allow_end=False):
+        if isinstance(index, bool) or not isinstance(index, int):
+            raise TypeError("List index must be an integer")
+        if index < 0 or index >= length:
+            raise IndexError(f"List index {index} is out of range for a list of length {length}")
+        return index
+
     def evaluate(self, expression):
         try:
             return self._evaluate(expression)
@@ -432,6 +468,14 @@ class Interpreter:
     def _evaluate(self, expression):
         if isinstance(expression, Literal):
             return expression.value
+        if isinstance(expression, ListLiteral):
+            return [self.evaluate(element) for element in expression.elements]
+        if isinstance(expression, IndexAccess):
+            target = self.evaluate(expression.object_expression)
+            if not isinstance(target, list):
+                raise TypeError("Indexing requires a list")
+            index = self._list_index(self.evaluate(expression.index), len(target), allow_end=False)
+            return target[index]
         if isinstance(expression, Variable):
             name = expression.name
             if name in self.environment:

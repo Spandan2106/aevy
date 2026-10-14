@@ -1,7 +1,8 @@
 from .token import TokenType
 from .ast_nodes import (
     Program, Literal, Variable, BinaryExpression, UnaryExpression,
-    Assignment, AttributeAccess, AttributeAssignment, ShowStatement,
+    Assignment, AttributeAccess, AttributeAssignment, ListLiteral,
+    IndexAccess, IndexAssignment, ShowStatement,
     ExpressionStatement, IfStatement, ElifBranch, ForStatement,
     WhileStatement, BreakStatement, ContinueStatement,
     FunctionDeclaration, ClassDeclaration, FunctionCall, ReturnStatement,
@@ -52,6 +53,18 @@ class Parser:
 
         if self.check(TokenType.IDENTIFIER) and self.check_next(TokenType.ASSIGN):
             return self.assignment()
+
+        if self.check(TokenType.IDENTIFIER) and self.check_next(TokenType.LBRACKET):
+            close_index = self.current + 2
+            depth = 1
+            while close_index < len(self.tokens) and depth:
+                if self.tokens[close_index].type == TokenType.LBRACKET:
+                    depth += 1
+                elif self.tokens[close_index].type == TokenType.RBRACKET:
+                    depth -= 1
+                close_index += 1
+            if depth == 0 and close_index < len(self.tokens) and self.tokens[close_index].type == TokenType.ASSIGN:
+                return self.index_assignment()
 
         if (
             self.check(TokenType.IDENTIFIER)
@@ -165,6 +178,16 @@ class Parser:
         value = self.expression()
         self.consume_line_end()
         return Assignment(name, value)
+
+    def index_assignment(self):
+        name_token = self.consume(TokenType.IDENTIFIER, "Expected list name")
+        self.consume(TokenType.LBRACKET, "Expected '[' after list name")
+        index = self.expression()
+        self.consume(TokenType.RBRACKET, "Expected ']' after index")
+        self.consume(TokenType.ASSIGN, "Expected '=' after list index")
+        value = self.expression()
+        self.consume_line_end()
+        return self.locate(IndexAssignment(self.locate(Variable(name_token.value), name_token), index, value), name_token)
 
     def attribute_assignment(self):
         object_name = self.consume(TokenType.IDENTIFIER, "Expected object name").value
@@ -352,6 +375,17 @@ class Parser:
             expression = self.locate(Variable(token.value), token)
             return self.finish_postfix(expression)
 
+        if self.match(TokenType.LBRACKET):
+            token = self.previous()
+            elements = []
+            if not self.check(TokenType.RBRACKET):
+                while True:
+                    elements.append(self.expression())
+                    if not self.match(TokenType.COMMA):
+                        break
+            self.consume(TokenType.RBRACKET, "Expected ']' after list elements")
+            return self.finish_postfix(self.locate(ListLiteral(elements), token))
+
         if self.match(TokenType.LPAREN):
             token = self.previous()
             expression = self.expression()
@@ -371,6 +405,11 @@ class Parser:
             if self.match(TokenType.LPAREN):
                 token = self.previous()
                 expression = self.locate(self.finish_call(expression), token)
+            elif self.match(TokenType.LBRACKET):
+                token = self.previous()
+                index = self.expression()
+                self.consume(TokenType.RBRACKET, "Expected ']' after index")
+                expression = self.locate(IndexAccess(expression, index), token)
             elif self.match(TokenType.DOT):
                 token = self.previous()
                 name = self.consume(

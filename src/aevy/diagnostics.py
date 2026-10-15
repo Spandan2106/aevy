@@ -25,6 +25,7 @@ def format_error(error, source=None):
     result = f"{label}: {message}"
     line = getattr(error, "aevy_line", None)
     column = getattr(error, "aevy_column", None)
+    source = getattr(error, "aevy_source", source)
     if line is not None and column is not None:
         result += f"\n  at line {line}, column {column}"
         if source is not None:

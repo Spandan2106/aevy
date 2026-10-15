@@ -147,3 +147,8 @@ class FunctionCall(ASTNode):
 @dataclass
 class ReturnStatement(ASTNode):
     value: object = None
+
+
+@dataclass
+class ImportStatement(ASTNode):
+    path: str

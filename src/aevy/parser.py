@@ -5,7 +5,7 @@ from .ast_nodes import (
     IndexAccess, IndexAssignment, ShowStatement,
     ExpressionStatement, IfStatement, ElifBranch, ForStatement,
     WhileStatement, BreakStatement, ContinueStatement,
-    FunctionDeclaration, ClassDeclaration, FunctionCall, ReturnStatement,
+    FunctionDeclaration, ClassDeclaration, FunctionCall, ReturnStatement, ImportStatement,
 )
 
 
@@ -28,6 +28,13 @@ class Parser:
         return self.locate(node, token)
 
     def _statement(self):
+        if self.check(TokenType.IMPORT):
+            self.advance()
+            path_token = self.consume(TokenType.STRING, "Expected a quoted module path after import")
+            if not path_token.value.endswith(".aevy"):
+                raise SyntaxError("Imported module paths must end with .aevy")
+            self.consume_line_end()
+            return ImportStatement(path_token.value)
         if self.check(TokenType.CLASS):
             return self.class_declaration()
         if self.check(TokenType.FUNC):

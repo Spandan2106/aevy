@@ -1,0 +1,4 @@
+write_text("notes.txt", "Hello")
+append_text("notes.txt", " Aevy")
+show(read_text("notes.txt"))
+show(file_exists("notes.txt"))

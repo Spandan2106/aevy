@@ -1,10 +1,14 @@
+from pathlib import Path
+
+from .lexer import Lexer
+from .parser import Parser
 from .ast_nodes import (
     Program, Literal, Variable, BinaryExpression, UnaryExpression,
     Assignment, AttributeAccess, AttributeAssignment, ListLiteral, DictLiteral,
     IndexAccess, IndexAssignment, ShowStatement,
     ExpressionStatement, IfStatement, ForStatement, WhileStatement,
     BreakStatement, ContinueStatement, FunctionDeclaration,
-    ClassDeclaration, FunctionCall, ReturnStatement,
+    ClassDeclaration, FunctionCall, ReturnStatement, ImportStatement,
 )
 class BreakSignal(Exception):
     pass
@@ -53,7 +57,7 @@ class SuperProxy:
         self.instance = instance
         self.parent_class = parent_class
 class Interpreter:
-    def __init__(self, source=None, input_func=input):
+    def __init__(self, source=None, input_func=input, base_dir=None):
         self.source = source
         self.input_func = input_func
         self.source_lines = source.splitlines() if source is not None else []
@@ -64,11 +68,57 @@ class Interpreter:
         self.loop_depth = 0
         self.function_depth = 0
         self.current_method_owner = None
+        self.base_dir = Path(base_dir or Path.cwd()).resolve()
+        self.imported_modules = set()
+        self.loading_modules = set()
     def interpret(self, program):
         if not isinstance(program, Program):
             raise TypeError("Expected a Program AST node")
         for statement in program.statements:
             self.execute(statement)
+    def _resolve_file_path(self, raw_path):
+        if not isinstance(raw_path, str) or not raw_path.strip():
+            raise TypeError("File path must be non-empty text")
+        candidate = (self.base_dir / raw_path).resolve()
+        try:
+            candidate.relative_to(self.base_dir)
+        except ValueError:
+            raise PermissionError("File paths must stay inside the Aevy project directory") from None
+        return candidate
+
+    def import_module(self, raw_path, statement=None):
+        path = self._resolve_file_path(raw_path)
+        if path in self.imported_modules:
+            return
+        if path in self.loading_modules:
+            raise RuntimeError(f"Circular module import detected for '{raw_path}'")
+        if path.suffix != ".aevy":
+            raise ValueError("Imported module paths must end with .aevy")
+        try:
+            source = path.read_text(encoding="utf-8")
+        except OSError as error:
+            raise RuntimeError(f"Cannot import module '{raw_path}': {error.strerror or error}") from None
+        self.loading_modules.add(path)
+        try:
+            try:
+                tokens = Lexer(source).scan_tokens()
+                program = Parser(tokens).parse()
+            except Exception as error:
+                error.aevy_source = source
+                raise
+            previous_source = self.source
+            previous_lines = self.source_lines
+            self.source = source
+            self.source_lines = source.splitlines()
+            try:
+                self.interpret(program)
+            finally:
+                self.source = previous_source
+                self.source_lines = previous_lines
+            self.imported_modules.add(path)
+        finally:
+            self.loading_modules.discard(path)
+
     def execute_block(self, statements):
         for statement in statements:
             self.execute(statement)
@@ -80,7 +130,9 @@ class Interpreter:
             raise
 
     def _execute(self, statement):
-        if isinstance(statement, Assignment):
+        if isinstance(statement, ImportStatement):
+            self.import_module(statement.path, statement)
+        elif isinstance(statement, Assignment):
             self.environment[statement.name] = self.evaluate(statement.value)
         elif isinstance(statement, IndexAssignment):
             target = self.evaluate(statement.object_expression)
@@ -265,6 +317,8 @@ class Interpreter:
             "reverse": (1, 1), "sum": (1, 1), "sort": (1, 1),
             "keys": (1, 1), "values": (1, 1), "has_key": (2, 2),
             "remove_key": (2, 2),
+            "read_text": (1, 1), "write_text": (2, 2),
+            "append_text": (2, 2), "file_exists": (1, 1),
         }
         minimum, maximum = arities[name]
         if len(values) < minimum or (maximum is not None and len(values) > maximum):
@@ -292,6 +346,28 @@ class Interpreter:
                 )
             return value
 
+        if name in {"read_text", "write_text", "append_text", "file_exists"}:
+            raw_path = require_string(values[0], 1)
+            path = self._resolve_file_path(raw_path)
+            if name == "file_exists":
+                return path.is_file()
+            if name == "read_text":
+                try:
+                    return path.read_text(encoding="utf-8")
+                except OSError as error:
+                    raise RuntimeError(f"Cannot read file '{raw_path}': {error.strerror or error}") from None
+            content = require_string(values[1], 2)
+            try:
+                path.parent.mkdir(parents=True, exist_ok=True)
+                if name == "write_text":
+                    path.write_text(content, encoding="utf-8")
+                else:
+                    with path.open("a", encoding="utf-8", newline="") as file:
+                        file.write(content)
+            except OSError as error:
+                action = "write" if name == "write_text" else "append to"
+                raise RuntimeError(f"Cannot {action} file '{raw_path}': {error.strerror or error}") from None
+            return None
         if name == "length":
             value = values[0]
             if isinstance(value, (str, list, dict)):
@@ -420,7 +496,7 @@ class Interpreter:
 
             # Built-ins are reserved names and are implemented explicitly so
             # Aevy programs never gain access to Python's global namespace.
-            if name in {"length", "upper", "lower", "trim", "contains", "abs", "min", "max", "round", "append", "pop", "remove", "insert", "index_of", "reverse", "sum", "sort", "keys", "values", "has_key", "remove_key"}:
+            if name in {"length", "upper", "lower", "trim", "contains", "abs", "min", "max", "round", "append", "pop", "remove", "insert", "index_of", "reverse", "sum", "sort", "keys", "values", "has_key", "remove_key", "read_text", "write_text", "append_text", "file_exists"}:
                 return self.call_standard_library(name, values)
 
             # Built-in conversion functions are reserved names.
@@ -555,13 +631,14 @@ class Interpreter:
             self._attach_location(error, expression)
             raise
 
-    @staticmethod
-    def _attach_location(error, node):
+    def _attach_location(self, error, node):
         # Preserve the most specific location: an inner expression that raised
         # the error wins over any enclosing statement or expression.
         if not hasattr(error, "aevy_line") and hasattr(node, "line"):
             error.aevy_line = node.line
             error.aevy_column = node.column
+            if getattr(error, "aevy_source", None) is None:
+                error.aevy_source = self.source
 
     def _evaluate(self, expression):
         if isinstance(expression, Literal):

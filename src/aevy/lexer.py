@@ -36,6 +36,7 @@ KEYWORDS = {
     "break": TokenType.BREAK,
 
     "continue": TokenType.CONTINUE,
+    "import": TokenType.IMPORT,
 
     "return": TokenType.RETURN,
 

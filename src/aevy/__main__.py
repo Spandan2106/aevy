@@ -15,11 +15,11 @@ from .parser import Parser
 from .interpreter import Interpreter
 
 
-def run(source, input_func=input):
+def run(source, input_func=input, base_dir=None):
     """Parse and execute Aevy source text."""
     tokens = Lexer(source).scan_tokens()
     program = Parser(tokens).parse()
-    interpreter = Interpreter(source=source, input_func=input_func)
+    interpreter = Interpreter(source=source, input_func=input_func, base_dir=base_dir)
     interpreter.interpret(program)
 
 
@@ -33,9 +33,8 @@ def run_file(filename):
         return 2
 
     try:
-        run(source)
-    except (SyntaxError, NameError, TypeError, PermissionError, RuntimeError,
-            ValueError, ZeroDivisionError, IndexError, KeyError, OverflowError) as error:
+        run(source, base_dir=path.resolve().parent)
+    except Exception as error:
         print(format_error(error, source), file=sys.stderr)
         return 1
     return 0
@@ -74,8 +73,7 @@ show(account.get_balance())
 '''
     try:
         run(demo)
-    except (SyntaxError, NameError, TypeError, PermissionError, RuntimeError,
-            ValueError, ZeroDivisionError, IndexError, KeyError, OverflowError) as error:
+    except Exception as error:
         print(format_error(error, demo), file=sys.stderr)
         return 1
     return 0

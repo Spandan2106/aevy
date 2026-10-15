@@ -26,6 +26,7 @@ class TokenType(Enum):
     WHILE = auto()
     BREAK = auto()
     CONTINUE = auto()
+    IMPORT = auto()
 
     # Operators
     ASSIGN = auto()

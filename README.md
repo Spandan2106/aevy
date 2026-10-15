@@ -328,3 +328,24 @@ no matching value exists. `reverse` mutates and returns its list; `sort` returns
 a sorted copy. List concatenation uses `+`, and list repetition uses `*` with a
 non-negative integer. `for item in list:` iterates over a list, while the existing
 `for i in start..end:` syntax continues to use an end-exclusive integer range.
+
+
+## Modules and text files
+
+Aevy programs can import another `.aevy` file using a quoted relative path. Imported code executes in the same program environment, so functions and classes it declares can be used by the importing file. Each module is executed only once; circular imports are rejected. Imports are resolved relative to the main `.aevy` file, and paths that escape its directory are rejected.
+
+```aevy
+import "helpers.aevy"
+show(double(21))
+```
+
+Text file built-ins are `read_text(path)`, `write_text(path, content)`, `append_text(path, content)`, and `file_exists(path)`. File paths are relative to the main `.aevy` file and must stay inside its directory. Text is read and written as UTF-8. `write_text` replaces existing content; `append_text` adds to the end.
+
+```aevy
+write_text("notes.txt", "Hello")
+append_text("notes.txt", " Aevy")
+show(read_text("notes.txt"))
+show(file_exists("notes.txt"))
+```
+
+Run the test suite from the repository root with `python -m unittest discover -s tests -v` after setting `PYTHONPATH=src` in PowerShell.

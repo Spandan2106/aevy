@@ -491,3 +491,17 @@ Dictionary indexing reads a value by key; indexed assignment inserts or updates 
 ## 10. Command-Line Execution
 
 From the project root, run the demo with `PYTHONPATH=src python -m aevy`, or execute a source file with `PYTHONPATH=src python -m aevy path/to/program.aevy`. On Windows PowerShell, set the environment variable first using `$env:PYTHONPATH = "src"`. The runner prints readable diagnostics and returns a non-zero exit status when file loading or execution fails.
+
+
+## 11. Modules and text file I/O
+
+`import "relative/path.aevy"` loads and executes a source file once in the shared interpreter environment. Import paths must be quoted and end in `.aevy`. Module paths are resolved relative to the entry-point file; paths escaping the entry-point directory are rejected. Circular imports raise a runtime error.
+
+The text-file built-ins are:
+
+- `read_text(path)` returns UTF-8 text.
+- `write_text(path, content)` creates or replaces a UTF-8 text file.
+- `append_text(path, content)` appends UTF-8 text.
+- `file_exists(path)` returns whether the path names a file.
+
+All file paths must be text paths within the entry-point directory. Parent directories are created for write and append operations. File errors are surfaced as readable Aevy runtime errors.

@@ -53,6 +53,11 @@ class ListLiteral(ASTNode):
 
 
 @dataclass
+class DictLiteral(ASTNode):
+    entries: list
+
+
+@dataclass
 class IndexAccess(ASTNode):
     object_expression: ASTNode
     index: ASTNode

@@ -24,8 +24,11 @@ Aevy is a personal language-engineering project exploring how programming langua
 - **User Input:** Reads a line of text with `give.input()` or `give.input("Prompt: ")`.
 - **Type Conversions:** Provides `number()`, `integer()`, `decimal()`, `text()`, and `boolean()` with validation.
 - **String Utilities:** `length()`, `upper()`, `lower()`, `trim()`, and `contains()`.
-- **Lists:** list literals, indexing, indexed assignment, nested lists, and list mutation.
-- **Numeric Utilities:** `abs()`, `min()`, `max()`, and `round()` with argument validation.
+- **Lists:** list literals, indexing, indexed assignment, nested lists, iteration, and list mutation.
+- **Dictionaries:** dictionary literals, key access and assignment, nested dictionaries, key iteration, and dictionary helper functions.
+- **Numeric Utilities:** `abs()`, `min()`, `max()`, `round()`, `sum()`, and `sort()` with argument validation.
+- **Dictionary Utilities:** `keys()`, `values()`, `has_key()`, and `remove_key()`.
+- **Command-Line Runner:** execute a `.aevy` source file with `python -m aevy path/to/file.aevy`.
 
 ## Example Programs
 
@@ -92,6 +95,27 @@ show(pop(numbers))
 ```
 
 `append(list, value)` adds a value to the end and returns no value. `pop(list)` removes and returns the last value; calling it on an empty list raises an error. Indexes must be integers and must be in range. Lists are mutable, so assigning a list to another variable shares the same list object.
+
+## Dictionaries
+
+Dictionaries store key-value pairs. String, number, and boolean keys are supported when hashable; lists and dictionaries cannot be keys. Dictionary keys preserve insertion order during iteration.
+
+```aevy
+person = {"name": "Alex", "age": 20}
+show(person["name"])
+person["age"] = 21
+person["city"] = "Kolkata"
+
+for key in person:
+    show(key)
+
+show(keys(person))
+show(values(person))
+show(has_key(person, "name"))
+remove_key(person, "city")
+```
+
+Use `length(dictionary)` to count entries. Accessing a missing key raises a clear `KeyError`. `remove_key(dictionary, key)` removes an existing entry and reports an error if the key is absent. `keys()` and `values()` return lists.
 
 ## Standard Library
 
@@ -192,11 +216,26 @@ git clone <YOUR_GITHUB_REPOSITORY_URL>
 cd aevy
 ```
 
-Run the current entry point in Windows PowerShell:
+Run the built-in demonstration in Windows PowerShell:
 
 ```powershell
 $env:PYTHONPATH = "src"
 python -m aevy
+```
+
+Run your own Aevy file:
+
+```powershell
+$env:PYTHONPATH = "src"
+python -m aevy examples/hello.aevy
+```
+
+The same file command works on macOS/Linux after setting `PYTHONPATH=src`, for example `PYTHONPATH=src python -m aevy examples/hello.aevy`. Use `python -m aevy --help` to see command usage.
+
+Run automated tests from the project root:
+
+```powershell
+python -m unittest discover -s tests -v
 ```
 
 The current entry point executes the source program configured in `src/aevy/__main__.py`.

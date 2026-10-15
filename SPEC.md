@@ -473,3 +473,21 @@ Aevy is distributed under the MIT License. See the repository's `LICENSE` file f
 - `reverse(list)` reverses the list in place and returns that list.
 - `sum(list)` adds numeric elements and rejects non-numeric elements.
 - `sort(list)` returns a sorted copy and rejects values that cannot be compared with each other.
+
+
+## 9. Dictionaries
+
+Dictionaries are mutable key-value collections created with braces. Keys and values are expressions, separated by a colon; entries are comma-separated. Empty dictionaries use `{}`.
+
+```aevy
+profile = {"name": "Alex", "age": 20}
+show(profile["name"])
+profile["age"] = 21
+show("name" in profile)
+```
+
+Dictionary indexing reads a value by key; indexed assignment inserts or updates a key. A missing key raises a `KeyError`. Keys must be hashable. Iterating with `for key in dictionary:` yields keys in insertion order. `length()` supports dictionaries. The built-ins `keys(dictionary)`, `values(dictionary)`, `has_key(dictionary, key)`, and `remove_key(dictionary, key)` provide basic dictionary operations.
+
+## 10. Command-Line Execution
+
+From the project root, run the demo with `PYTHONPATH=src python -m aevy`, or execute a source file with `PYTHONPATH=src python -m aevy path/to/program.aevy`. On Windows PowerShell, set the environment variable first using `$env:PYTHONPATH = "src"`. The runner prints readable diagnostics and returns a non-zero exit status when file loading or execution fails.

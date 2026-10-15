@@ -17,7 +17,7 @@ def format_error(error, source=None):
     elif isinstance(error, ZeroDivisionError):
         label = "Arithmetic error"
         message = "Division by zero"
-    elif isinstance(error, (RuntimeError, ValueError, IndexError)):
+    elif isinstance(error, (RuntimeError, ValueError, IndexError, KeyError)):
         label = "Runtime error"
     else:
         label = name

@@ -1,7 +1,7 @@
 from .token import TokenType
 from .ast_nodes import (
     Program, Literal, Variable, BinaryExpression, UnaryExpression,
-    Assignment, AttributeAccess, AttributeAssignment, ListLiteral,
+    Assignment, AttributeAccess, AttributeAssignment, ListLiteral, DictLiteral,
     IndexAccess, IndexAssignment, ShowStatement,
     ExpressionStatement, IfStatement, ElifBranch, ForStatement,
     WhileStatement, BreakStatement, ContinueStatement,
@@ -378,6 +378,22 @@ class Parser:
             token = self.previous()
             expression = self.locate(Variable(token.value), token)
             return self.finish_postfix(expression)
+
+        if self.match(TokenType.LBRACE):
+            token = self.previous()
+            entries = []
+            if not self.check(TokenType.RBRACE):
+                while True:
+                    key = self.expression()
+                    self.consume(TokenType.COLON, "Expected ':' between dictionary key and value")
+                    value = self.expression()
+                    entries.append((key, value))
+                    if not self.match(TokenType.COMMA):
+                        break
+                    if self.check(TokenType.RBRACE):
+                        break
+            self.consume(TokenType.RBRACE, "Expected '}' after dictionary entries")
+            return self.finish_postfix(self.locate(DictLiteral(entries), token))
 
         if self.match(TokenType.LBRACKET):
             token = self.previous()

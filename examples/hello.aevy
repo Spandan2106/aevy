@@ -11,5 +11,5 @@ greet()
 if age >= 18:
     show("You are an adult.")
 
-for i in range(5):
+for i in 0..5:
     show(i)

@@ -1,6 +1,6 @@
 from .ast_nodes import (
     Program, Literal, Variable, BinaryExpression, UnaryExpression,
-    Assignment, AttributeAccess, AttributeAssignment, ListLiteral,
+    Assignment, AttributeAccess, AttributeAssignment, ListLiteral, DictLiteral,
     IndexAccess, IndexAssignment, ShowStatement,
     ExpressionStatement, IfStatement, ForStatement, WhileStatement,
     BreakStatement, ContinueStatement, FunctionDeclaration,
@@ -84,10 +84,16 @@ class Interpreter:
             self.environment[statement.name] = self.evaluate(statement.value)
         elif isinstance(statement, IndexAssignment):
             target = self.evaluate(statement.object_expression)
-            if not isinstance(target, list):
-                raise TypeError("Indexed assignment requires a list")
-            index = self._list_index(self.evaluate(statement.index), len(target), allow_end=False)
-            target[index] = self.evaluate(statement.value)
+            index = self.evaluate(statement.index)
+            value = self.evaluate(statement.value)
+            if isinstance(target, list):
+                checked_index = self._list_index(index, len(target), allow_end=False)
+                target[checked_index] = value
+            elif isinstance(target, dict):
+                self._require_hashable_key(index)
+                target[index] = value
+            else:
+                raise TypeError("Indexed assignment requires a list or dictionary")
         elif isinstance(statement, AttributeAssignment):
             instance = self.evaluate(statement.object_expression)
             if not isinstance(instance, AevyInstance):
@@ -167,8 +173,10 @@ class Interpreter:
         elif isinstance(statement, ForStatement):
             if statement.iterable is not None:
                 values = self.evaluate(statement.iterable)
-                if not isinstance(values, list):
-                    raise TypeError("For-loop iteration requires a list")
+                if not isinstance(values, (list, dict)):
+                    raise TypeError("For-loop iteration requires a list or dictionary")
+                if isinstance(values, dict):
+                    values = list(values.keys())
             else:
                 start = self.evaluate(statement.start)
                 end = self.evaluate(statement.end)
@@ -246,8 +254,7 @@ class Interpreter:
             self.current_method_owner = previous_method_owner
             self.function_depth -= 1
         return None
-    @staticmethod
-    def call_standard_library(name, values):
+    def call_standard_library(self, name, values):
         """Execute Aevy's small, validated standard-library built-ins."""
         arities = {
             "length": (1, 1), "upper": (1, 1), "lower": (1, 1),
@@ -256,6 +263,8 @@ class Interpreter:
             "append": (2, 2), "pop": (1, 1),
             "remove": (2, 2), "insert": (3, 3), "index_of": (2, 2),
             "reverse": (1, 1), "sum": (1, 1), "sort": (1, 1),
+            "keys": (1, 1), "values": (1, 1), "has_key": (2, 2),
+            "remove_key": (2, 2),
         }
         minimum, maximum = arities[name]
         if len(values) < minimum or (maximum is not None and len(values) > maximum):
@@ -285,9 +294,32 @@ class Interpreter:
 
         if name == "length":
             value = values[0]
-            if isinstance(value, (str, list)):
+            if isinstance(value, (str, list, dict)):
                 return len(value)
-            raise TypeError("Built-in 'length' argument 1 must be text or a list")
+            raise TypeError("Built-in 'length' argument 1 must be text or a list (or a dictionary)")
+        if name == "keys":
+            if not isinstance(values[0], dict):
+                raise TypeError("Built-in 'keys' argument 1 must be a dictionary")
+            return list(values[0].keys())
+        if name == "values":
+            if not isinstance(values[0], dict):
+                raise TypeError("Built-in 'values' argument 1 must be a dictionary")
+            return list(values[0].values())
+        if name == "has_key":
+            target, key = values
+            if not isinstance(target, dict):
+                raise TypeError("Built-in 'has_key' argument 1 must be a dictionary")
+            self._require_hashable_key(key)
+            return key in target
+        if name == "remove_key":
+            target, key = values
+            if not isinstance(target, dict):
+                raise TypeError("Built-in 'remove_key' argument 1 must be a dictionary")
+            self._require_hashable_key(key)
+            if key not in target:
+                raise KeyError(f"Dictionary key {key!r} was not found")
+            del target[key]
+            return None
         if name == "append":
             target = values[0]
             if not isinstance(target, list):
@@ -363,9 +395,9 @@ class Interpreter:
             if isinstance(haystack, str):
                 needle = require_string(values[1], 2)
                 return needle in haystack
-            if isinstance(haystack, list):
+            if isinstance(haystack, (list, dict)):
                 return values[1] in haystack
-            raise TypeError("Built-in 'contains' argument 1 must be text or a list")
+            raise TypeError("Built-in 'contains' argument 1 must be text, a list, or a dictionary")
         if name == "abs":
             return abs(require_number(values[0]))
         if name in {"min", "max"}:
@@ -388,7 +420,7 @@ class Interpreter:
 
             # Built-ins are reserved names and are implemented explicitly so
             # Aevy programs never gain access to Python's global namespace.
-            if name in {"length", "upper", "lower", "trim", "contains", "abs", "min", "max", "round", "append", "pop", "remove", "insert", "index_of", "reverse", "sum", "sort"}:
+            if name in {"length", "upper", "lower", "trim", "contains", "abs", "min", "max", "round", "append", "pop", "remove", "insert", "index_of", "reverse", "sum", "sort", "keys", "values", "has_key", "remove_key"}:
                 return self.call_standard_library(name, values)
 
             # Built-in conversion functions are reserved names.
@@ -502,6 +534,13 @@ class Interpreter:
             return self.call_function_declaration(method, values, receiver, owner)
         raise RuntimeError("Only named functions and object methods can be called")
     @staticmethod
+    def _require_hashable_key(key):
+        try:
+            hash(key)
+        except TypeError:
+            raise TypeError("Dictionary keys must be hashable values") from None
+
+    @staticmethod
     def _list_index(index, length, allow_end=False):
         if isinstance(index, bool) or not isinstance(index, int):
             raise TypeError("List index must be an integer")
@@ -529,12 +568,25 @@ class Interpreter:
             return expression.value
         if isinstance(expression, ListLiteral):
             return [self.evaluate(element) for element in expression.elements]
+        if isinstance(expression, DictLiteral):
+            result = {}
+            for key_expression, value_expression in expression.entries:
+                key = self.evaluate(key_expression)
+                self._require_hashable_key(key)
+                result[key] = self.evaluate(value_expression)
+            return result
         if isinstance(expression, IndexAccess):
             target = self.evaluate(expression.object_expression)
-            if not isinstance(target, list):
-                raise TypeError("Indexing requires a list")
-            index = self._list_index(self.evaluate(expression.index), len(target), allow_end=False)
-            return target[index]
+            index = self.evaluate(expression.index)
+            if isinstance(target, list):
+                checked_index = self._list_index(index, len(target), allow_end=False)
+                return target[checked_index]
+            if isinstance(target, dict):
+                self._require_hashable_key(index)
+                if index not in target:
+                    raise KeyError(f"Dictionary key {index!r} was not found")
+                return target[index]
+            raise TypeError("Indexing requires a list or dictionary")
         if isinstance(expression, Variable):
             name = expression.name
             if name in self.environment:
@@ -627,9 +679,9 @@ class Interpreter:
             if operator == "==": return left == right
             if operator == "!=": return left != right
             if operator == "in":
-                if isinstance(right, (list, str)):
+                if isinstance(right, (list, str, dict)):
                     return left in right
-                raise TypeError("Right operand of 'in' must be a list or text")
+                raise TypeError("Right operand of 'in' must be a list, dictionary, or text")
             if operator == "<": return left < right
             if operator == "<=": return left <= right
             if operator == ">": return left > right

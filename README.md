@@ -1,4 +1,5 @@
-
+[![Architecture diagram](https://gitdiagram.com/diagram-badge.svg)](https://gitdiagram.com/spandan2106/aevy?utm_source=readme&utm_medium=badge)
+[![Architecture diagram of spandan2106/aevy](https://gitdiagram.com/spandan2106/aevy/diagram.png)](https://gitdiagram.com/spandan2106/aevy?utm_source=readme&utm_medium=picture)
 # Aevy
 
 <p align="center">

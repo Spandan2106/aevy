@@ -2,7 +2,9 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 build/
-/dist/
+dist/*
+!dist/aevy_language-0.1.0-py3-none-any.whl
+!dist/aevy_language-0.1.0.tar.gz
 .venv/
 venv/
 .pytest_cache/

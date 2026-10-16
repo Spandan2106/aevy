@@ -3,109 +3,114 @@
 
 <p align="center">
   <strong>A programming language built from scratch in Python.</strong><br>
-  An experimental language-engineering project exploring how source code becomes executable behavior.
+  Explore how lexical analysis, AST construction, and tree-walk interpretation bring code to life.
 </p>
 
 <p align="center">
-  <a href="https://github.com/Spandan2106/aevy/releases">Latest release: v0.1.0</a> · 
-  <a href="SPEC.md">Language specification</a> · 
-  <a href="RELEASE_CHECKLIST.md">Release checklist</a>
+  <img src="https://img.shields.io/badge/version-0.1.0-blue.svg?style=flat-square" alt="Version 0.1.0">
+  <img src="https://img.shields.io/badge/python-3.10%2B-3776AB.svg?style=flat-square&logo=python&logoColor=white" alt="Python 3.10+">
+  <img src="https://img.shields.io/badge/tests-115%20passing-brightgreen.svg?style=flat-square" alt="115 passing tests">
+  <img src="https://img.shields.io/badge/license-MIT-green.svg?style=flat-square" alt="MIT License">
 </p>
 
-------------------------------------------------------------------------
+<p align="center">
+  <a href="https://github.com/Spandan2106/aevy/releases">Releases</a> ·
+  <a href="SPEC.md">Language Specification</a> ·
+  <a href="RELEASE_CHECKLIST.md">Release Checklist</a> ·
+  <a href="CONTRIBUTING.md">Contributing</a> ·
+  <a href="https://github.com/Spandan2106/aevy/issues">Report an Issue</a>
+</p>
 
-Aevy is an experimental programming language with its own **lexer,
-parser, abstract syntax tree (AST), and interpreter**. Its hybrid syntax
-combines brace-delimited function and class definitions with
-indentation-based control-flow blocks. It supports functions, recursion,
-object-oriented programming, collections, module imports, and UTF-8
-text-file operations.
+---
 
-**Current version:** `0.1.0` · **Status:** Experimental alpha
+**Aevy** is an experimental interpreted programming language implemented in Python. It has its own **lexer, recursive-descent parser, abstract syntax tree (AST), and interpreter**, built using Python's standard library.
 
-> \[!WARNING\] Aevy is under active development. Syntax and behavior may
-> change between releases. It is a learning and experimentation project,
-> not a production-ready language. Review the [language
-> specification](SPEC.md) and [release checklist](RELEASE_CHECKLIST.md)
-> before relying on it.
+Aevy uses a deliberate hybrid syntax: **brace-delimited function and class definitions** combined with **indentation-based control flow**. The language explores core programming concepts through variables, expressions, functions, recursion, classes, collections, modules, and file operations.
 
-## Contents
+> [!WARNING]
+> **Experimental Alpha — v0.1.0**
+>
+> Aevy is actively evolving. Its syntax, built-in APIs, and behavior may change between releases. It is intended for learning and experimentation, not production-critical applications. See [SPEC.md](SPEC.md) for supported syntax and known limitations.
 
--   [Highlights](#highlights)
--   [Your first Aevy program](#your-first-aevy-program)
--   [Language examples](#language-examples)
--   [Features](#features)
--   [How Aevy works](#how-aevy-works)
--   [Install and run](#install-and-run)
--   [Run the tests](#run-the-tests)
--   [Project structure](#project-structure)
--   [Roadmap](#roadmap)
--   [Contributing](#contributing)
--   [License](#license)
+## Table of Contents
 
-## Highlights
+- [Key Highlights](#key-highlights)
+- [Quick Start](#quick-start)
+- [Language Overview](#language-overview)
+  - [Functions and Recursion](#functions-and-recursion)
+  - [Lists and Dictionaries](#lists-and-dictionaries)
+  - [Object-Oriented Programming](#object-oriented-programming)
+  - [Modules and File I/O](#modules-and-file-io)
+  - [User Input](#user-input)
+- [Language Design](#language-design)
+- [Architecture](#architecture)
+- [Installation](#installation)
+- [Testing](#testing)
+- [Project Structure](#project-structure)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [License](#license)
 
--   **Built from scratch:** a custom lexer, parser, AST, and
-    interpreter.
--   **Readable syntax:** inferred variables, `func` declarations, and
-    `show()` output.
--   **Core programming constructs:** conditions, loops, functions,
-    return values, and recursion.
--   **Object-oriented programming:** classes, inheritance, and
-    polymorphism.
--   **Useful data structures:** mutable lists and insertion-ordered
-    dictionaries.
--   **Modules and files:** relative `.aevy` imports and UTF-8 text-file
-    helpers.
--   **Developer tooling:** command-line runner, source-aware
-    diagnostics, package metadata, and automated tests.
+## Key Highlights
 
-## Your first Aevy program
+- **Built from scratch:** A custom lexer, parser, AST, and tree-walk interpreter.
+- **Hybrid syntax:** Brace-delimited declarations with indentation-based conditional and loop blocks.
+- **Dynamic variables:** Create variables through assignment without explicit type declarations.
+- **Core programming features:** Expressions, conditions, loops, functions, return values, and recursion.
+- **Object-oriented programming:** Classes, constructors, inheritance, and polymorphism.
+- **Collections:** Mutable lists and insertion-ordered dictionaries with built-in utilities.
+- **Module system:** Relative `.aevy` imports, import caching, and circular-import detection.
+- **Text-file operations:** UTF-8 reading, writing, appending, and file-existence checks.
+- **Source-aware diagnostics:** Lexer, parser, and runtime errors with source-location information where available.
+- **Python packaging:** Installable package with a command-line runner and distributable release artifacts.
+- **Automated tests:** A regression test suite with 115 passing tests in the verified development run.
 
-Save this as `hello.aevy`:
+## Quick Start
 
-``` aevy
-name = "Aevy"
-show("Hello, " + name)
+### Your first Aevy program
+
+Create a file named `hello.aevy`:
+
+```aevy
+// Welcome to Aevy
+name = "World"
+show("Hello, " + name + "!")
 ```
 
-Output:
+Expected output:
 
-``` text
-Hello, Aevy
+```text
+Hello, World!
 ```
 
-Run it from the project root:
+### Run Aevy
 
-``` powershell
+After installing the package, execute:
+
+```powershell
+aevy hello.aevy
+```
+
+You can also run a file directly from the source repository:
+
+```powershell
 $env:PYTHONPATH = "src"
 python -m aevy examples/hello.aevy
 ```
 
-Or, after installing Aevy, use the command-line tool:
+To see the command-line options:
 
-``` powershell
-aevy examples/hello.aevy
+```powershell
+aevy --help
 ```
 
-## Language examples
+## Language Overview
 
-### Functions and return values
+### Functions and Recursion
 
-``` aevy
-func add(a, b) {
-    return a + b
-}
+Functions are declared using `func`, with braces around the function body. Conditional blocks inside functions use a colon followed by indentation.
 
-result = add(10, 20)
-show(result)
-```
-
-Output: `30`
-
-### Recursion
-
-``` aevy
+```aevy
 func factorial(n) {
     if n <= 1:
         return 1
@@ -115,88 +120,149 @@ func factorial(n) {
 show(factorial(5))
 ```
 
-Output: `120`
+Output:
 
-### Lists
+```text
+120
+```
 
-``` aevy
-numbers = [5, 2, 8, 1]
-append(numbers, 10)
+Functions support parameters, function calls, return values, and recursion.
 
-for item in numbers:
-    show(item)
+### Lists and Dictionaries
 
-show(sum(numbers))
+Aevy provides mutable lists and dictionaries for working with collections.
+
+#### Lists
+
+```aevy
+numbers = [10, 5, 8, 2]
+
+append(numbers, 20)
 show(sort(numbers))
+show(sum(numbers))
 ```
 
-Lists support indexing, indexed assignment, nesting, iteration,
-mutation, concatenation, and repetition. Helpers include `append`,
-`pop`, `insert`, `remove`, `index_of`, `reverse`, `sum`, and `sort`.
+Available list helpers include:
 
-### Dictionaries
+- `append(list, value)`
+- `pop(list)`
+- `insert(list, index, value)`
+- `remove(list, value)`
+- `index_of(list, value)`
+- `reverse(list)`
+- `sum(list)`
+- `sort(list)`
 
-``` aevy
-person = {"name": "Alex", "age": 20}
-person["age"] = 21
-person["city"] = "Kolkata"
+Lists support indexing, indexed assignment, nesting, iteration, concatenation, and repetition.
 
-show(person["name"])
-show(keys(person))
-show(values(person))
-show(has_key(person, "city"))
-remove_key(person, "city")
+#### Dictionaries
+
+```aevy
+user = {
+    "username": "spandan",
+    "role": "engineer"
+}
+
+user["active"] = True
+
+if has_key(user, "role"):
+    show("User role: " + user["role"])
 ```
 
-Dictionaries support key access and assignment, nested dictionaries,
-membership checks, and insertion-ordered key iteration. String, number,
-and boolean keys are supported when hashable.
+Available dictionary helpers include:
 
-### Modules
+- `keys(dictionary)`
+- `values(dictionary)`
+- `has_key(dictionary, key)`
+- `remove_key(dictionary, key)`
 
-Create `helpers.aevy`:
+Dictionaries support key access, assignment, nested dictionaries, and insertion-ordered iteration. Supported keys must be hashable.
 
-``` aevy
+### Object-Oriented Programming
+
+Aevy supports classes, constructors, instance methods, inheritance, and polymorphism.
+
+```aevy
+class Animal {
+    func init(name) {
+        this.name = name
+    }
+
+    func speak() {
+        return "Generic sound"
+    }
+}
+
+class Dog : Animal {
+    func speak() {
+        return "Woof!"
+    }
+}
+
+dog = Dog("Buddy")
+show(dog.name + " says: " + dog.speak())
+```
+
+Expected output:
+
+```text
+Buddy says: Woof!
+```
+
+For exact constructor, inheritance, and method-call semantics, consult [SPEC.md](SPEC.md).
+
+### Modules and File I/O
+
+Aevy programs can import other `.aevy` files using quoted relative paths.
+
+For example, create `math_utils.aevy`:
+
+```aevy
 func double(n) {
     return n * 2
 }
 ```
 
-Then create `main.aevy`:
+Then import and use it from `main.aevy`:
 
-``` aevy
-import "helpers.aevy"
+```aevy
+import "math_utils.aevy"
+
 show(double(21))
 ```
 
 Run the main file:
 
-``` powershell
+```powershell
 aevy main.aevy
 ```
 
-Imports use quoted relative paths, are cached after execution, and
-reject circular imports. Import paths are restricted to the directory
-containing the main program.
+Imports are cached after execution, and circular imports are reported as errors. Import paths are restricted to the directory containing the main program.
 
-### Text-file I/O
+#### Text-file operations
 
-``` aevy
-write_text("notes.txt", "Hello")
-append_text("notes.txt", " Aevy")
+```aevy
+write_text("output.txt", "Building languages from scratch.\n")
+append_text("output.txt", "Powered by Aevy.")
 
-show(read_text("notes.txt"))
-show(file_exists("notes.txt"))
+if file_exists("output.txt"):
+    show(read_text("output.txt"))
 ```
 
-Text is read and written as UTF-8. `write_text()` replaces existing
-content; `append_text()` adds content to the end. Paths must stay within
-the directory containing the main `.aevy` file. File operations can
-still fail because of permissions or other I/O errors.
+The available file helpers are:
 
-### User input and conversion
+- `read_text(path)` — reads UTF-8 text.
+- `write_text(path, content)` — writes text, replacing existing content.
+- `append_text(path, content)` — appends text to a file.
+- `file_exists(path)` — checks whether a file exists.
 
-``` aevy
+File paths must remain within the directory containing the main `.aevy` file. Normal operating-system permissions and I/O errors still apply.
+
+### User Input
+
+Aevy supports interactive line input through `give.input()`.
+
+```aevy
 name = give.input("What is your name? ")
 age_text = give.input("How old are you? ")
 age = number(age_text)
@@ -205,74 +271,30 @@ show("Hello, " + name)
 show(age + 1)
 ```
 
-`give.input()` returns text. Conversion helpers include `number()`,
-`integer()`, `decimal()`, `text()`, and `boolean()`. Invalid conversions
-raise errors rather than silently choosing a value.
+`give.input()` returns text. Available conversion helpers include `number()`, `integer()`, `decimal()`, `text()`, and `boolean()`.
 
-## Features
+Invalid conversions raise errors rather than silently selecting a value.
 
-  -----------------------------------------------------------------------
-  Area                                Current support
-  ----------------------------------- -----------------------------------
-  Types and variables                 Integers, decimals, strings,
-                                      booleans, inferred variables
+## Language Design
 
-  Expressions                         Arithmetic, comparison, equality,
-                                      logical operators
+Aevy uses a hybrid syntax designed to explore different approaches to readable code.
 
-  Control flow                        `if`, `elif`, `else`, `for`,
-                                      `while`, `break`, `continue`
-
-  Functions                           Parameters, calls, return values,
-                                      recursion
-
-  Object-oriented programming         Classes, constructors, inheritance,
-                                      polymorphism
-
-  Lists                               Indexing, mutation, nested lists,
-                                      iteration, helper functions
-
-  Dictionaries                        Key access, mutation, nested
-                                      dictionaries, helper functions
-
-  Built-ins                           `show()`, `give.input()`,
-                                      conversions, string and numeric
-                                      utilities
-
-  Modules                             Relative `.aevy` imports, import
-                                      caching, circular-import detection
-
-  Text files                          UTF-8 read, write, append, and
-                                      existence checks
-
-  Diagnostics                         Lexer/parser locations and
-                                      source-aware runtime errors
-
-  CLI                                 `python -m aevy` and the installed
-                                      `aevy` command
-  -----------------------------------------------------------------------
-
-For exact syntax, semantics, and known limitations, see
-[`SPEC.md`](SPEC.md).
-
-## Language design
-
-Aevy uses a deliberate hybrid syntax:
-
--   `func` declares functions.
--   Function and class bodies use braces: `{}`.
--   Conditional and loop blocks use a colon followed by indentation.
--   Assignment creates variables; explicit type declarations are not
-    required.
--   `show()` displays a value.
--   `return` sends a value back from a function.
--   `start..end` represents an end-exclusive integer range in a `for`
-    loop.
--   Use `//` for comments.
+| Construct | Syntax |
+|---|---|
+| Function declaration | `func name(args) { ... }` |
+| Class declaration | `class Name { ... }` |
+| Conditional | `if condition:` followed by indentation |
+| Alternative branch | `else:` followed by indentation |
+| Loop | `for` or `while` with an indented body |
+| Output | `show(value)` |
+| Return value | `return expression` |
+| Variable creation | Assignment without explicit type declarations |
+| Range | `start..end`, with the ending value exclusive |
+| Comment | `// comment` |
 
 Example:
 
-``` aevy
+```aevy
 func describe_age(age) {
     if age >= 18:
         show("Adult")
@@ -283,131 +305,181 @@ func describe_age(age) {
 describe_age(20)
 ```
 
-## How Aevy works
+Aevy's syntax and semantics are experimental and may evolve. The language specification is the authoritative reference for supported behavior.
+
+## Architecture
 
 Aevy follows a conventional interpreter pipeline:
 
-``` text
-Aevy source file
-      |
-      v
-     Lexer
-      |
-      v
-    Tokens
-      |
-      v
-     Parser
-      |
-      v
- Abstract Syntax Tree (AST)
-      |
-      v
-  Interpreter
-      |
-      v
- Program output
+```text
+            Source Code
+                 |
+                 v
+               Lexer
+                 |
+                 v
+               Tokens
+                 |
+                 v
+               Parser
+                 |
+                 v
+      Abstract Syntax Tree (AST)
+                 |
+                 v
+            Interpreter
+                 |
+                 v
+            Program Output
 ```
 
-**Implementation:** Python · **Architecture:** Lexer, parser, AST,
-interpreter · **Runtime dependencies:** None required
+### Core Components
 
-## Install and run
+| Component | Responsibility |
+|---|---|
+| `lexer.py` | Converts source text into tokens. |
+| `parser.py` | Parses tokens and constructs the AST. |
+| `ast_nodes.py` | Defines the language's syntax-tree nodes. |
+| `interpreter.py` | Evaluates statements and expressions and executes programs. |
+| `__main__.py` | Provides the module command-line entry point. |
 
-### Requirements
+### Technology
 
--   Python 3.10 or later
--   Git, if cloning the repository
+- **Implementation language:** Python
+- **Architecture:** Lexer, parser, AST, and interpreter
+- **Runtime dependencies:** Python standard library
+- **Package format:** Python wheel and source distribution
+- **Testing:** `pytest` and `unittest`
 
-### Option 1: Install the published release
+## Installation
 
-Download `aevy_language-0.1.0-py3-none-any.whl` from the [GitHub
-Releases page](https://github.com/Spandan2106/aevy/releases).
+### Prerequisites
 
-In Windows PowerShell, from the folder containing the downloaded wheel:
+- Python 3.10 or later
+- Git, if cloning the repository
 
-``` powershell
+### Method 1: Install the published wheel
+
+1. Open the [Aevy Releases page](https://github.com/Spandan2106/aevy/releases).
+2. Download `aevy_language-0.1.0-py3-none-any.whl`.
+3. Open a terminal in the directory containing the downloaded file.
+
+#### Windows PowerShell
+
+```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install .\aevy_language-0.1.0-py3-none-any.whl
 aevy --help
 ```
 
-Then run an Aevy source file:
+Then run an Aevy program:
 
-``` powershell
+```powershell
 aevy path\to\your_program.aevy
 ```
 
-On macOS/Linux, activate the environment with
-`source .venv/bin/activate`, then install the downloaded wheel using
-`python -m pip install ./aevy_language-0.1.0-py3-none-any.whl`.
+#### macOS and Linux
 
-### Option 2: Install from source
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install ./aevy_language-0.1.0-py3-none-any.whl
+aevy --help
+```
+
+### Method 2: Install from source
 
 Clone the repository:
 
-``` bash
+```bash
 git clone https://github.com/Spandan2106/aevy.git
 cd aevy
 ```
 
-Create and activate a virtual environment in PowerShell:
+Create and activate a virtual environment.
 
-``` powershell
+#### Windows PowerShell
+
+```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 ```
 
-Install the package in editable mode:
+#### macOS and Linux
 
-``` powershell
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+Install Aevy in editable mode:
+
+```bash
 python -m pip install -e .
 ```
 
-Run the CLI and an example:
+Run the command-line tool:
 
-``` powershell
+```bash
 aevy --help
 aevy
 aevy examples/hello.aevy
 ```
 
-You can also run directly from source without installing the package:
+You can also run directly from the source tree without installing the package:
 
-``` powershell
+#### Windows PowerShell
+
+```powershell
 $env:PYTHONPATH = "src"
 python -m aevy examples/hello.aevy
 ```
 
-On macOS/Linux, use:
+#### macOS and Linux
 
-``` bash
+```bash
 PYTHONPATH=src python -m aevy examples/hello.aevy
 ```
 
-## Run the tests
+## Testing
 
-From the repository root, with the development environment activated:
+Aevy has an automated regression test suite covering implemented language behavior, parsing, execution, and error handling.
 
-``` powershell
+Run the tests from the repository root:
+
+```bash
 python -m pytest -q
 ```
 
-The project also supports Python's built-in `unittest` runner:
+For verbose test output:
 
-``` powershell
+```bash
+python -m pytest -v
+```
+
+The project also supports Python's built-in `unittest` runner.
+
+#### Windows PowerShell
+
+```powershell
 $env:PYTHONPATH = "src"
 python -m unittest discover -s tests -v
 ```
 
-The current development test suite has **115 passing tests**. Tests
-cover implemented behavior; they do not prove complete language
-correctness or production security.
+#### macOS and Linux
 
-## Project structure
+```bash
+PYTHONPATH=src python -m unittest discover -s tests -v
+```
 
-``` text
+**Verified development result:** 115 tests passed in 1.27 seconds.
+
+Test results reflect the covered cases; they do not establish complete language correctness or production-grade security.
+
+## Project Structure
+
+```text
 aevy/
 ├── src/
 │   └── aevy/
@@ -422,6 +494,7 @@ aevy/
 ├── tests/
 ├── README.md
 ├── SPEC.md
+├── CONTRIBUTING.md
 ├── RELEASE_CHECKLIST.md
 ├── LICENSE
 └── pyproject.toml
@@ -429,40 +502,50 @@ aevy/
 
 ## Roadmap
 
--   [x] Lexer, parser, AST, and interpreter
--   [x] Variables, expressions, conditions, and loops
--   [x] Functions, return values, and recursion
--   [x] Classes, inheritance, and polymorphism
--   [x] Lists, dictionaries, and standard-library helpers
--   [x] Source-aware diagnostics and CLI file execution
--   [x] Relative imports and text-file I/O
--   [x] Automated regression tests and CI workflow
--   [x] Python package metadata and v0.1.0 distribution builds
--   [ ] Expand compatibility and edge-case coverage
--   [ ] Continue improving diagnostics and documentation
--   [ ] Review security boundaries and language semantics before a
-    stable `1.0` release
+### Completed
+
+- [x] Lexer, parser, AST, and tree-walk interpreter
+- [x] Variables, expressions, conditions, and loops
+- [x] Functions, return values, and recursion
+- [x] Classes, constructors, inheritance, and polymorphism
+- [x] Lists, dictionaries, and built-in utilities
+- [x] Source-aware diagnostics
+- [x] Relative module imports and UTF-8 text-file operations
+- [x] CLI runner and Python package metadata
+- [x] Automated regression tests and CI workflow
+- [x] v0.1.0 wheel and source distribution
+
+### Planned
+
+- [ ] Expand compatibility and edge-case coverage
+- [ ] Improve diagnostics, documentation, and examples
+- [ ] Explore an interactive REPL
+- [ ] Evaluate additional standard-library functionality
+- [ ] Investigate bytecode compilation and a virtual-machine runtime
+- [ ] Continue language-semantics and security reviews before a stable 1.0 release
+
+The roadmap is exploratory. Planned items are not implemented features and may change as the project develops.
 
 ## Contributing
 
-Aevy is an active personal language-engineering project. Bug reports,
-reproducible examples, feature ideas, and constructive feedback are
-welcome through [GitHub
-Issues](https://github.com/Spandan2106/aevy/issues).
+Contributions, feedback, bug reports, documentation improvements, and feature suggestions are welcome.
 
-When reporting a bug, include: - The smallest `.aevy` program that
-reproduces it - The command you ran - The actual output and expected
-output - Your Python version and operating system
+1. Read [`CONTRIBUTING.md`](CONTRIBUTING.md).
+2. Check the [existing issues](https://github.com/Spandan2106/aevy/issues).
+3. For substantial changes, discuss the design in an issue first.
+4. Add or update tests for behavioral changes.
+5. Run the test suite before submitting a pull request.
 
-Because Aevy is experimental, check the language specification before
-assuming a feature is supported.
+When reporting a bug, include a minimal `.aevy` example, the command you ran, expected and actual behavior, and your Python version and operating system.
+
+## Language Specification
+
+See [`SPEC.md`](SPEC.md) for detailed syntax, supported constructs, semantics, examples, and known limitations.
 
 ## License
 
 Aevy is released under the [MIT License](LICENSE).
 
-------------------------------------------------------------------------
+---
 
-**Curious about how programming languages work?** Explore the source,
-run the examples, and follow Aevy's development through the [Aevy
-repository](https://github.com/Spandan2106/aevy).
+**Curious about how programming languages work?** Explore the [Aevy repository](https://github.com/Spandan2106/aevy), run the examples, and follow the project's development.

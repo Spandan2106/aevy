@@ -4,7 +4,7 @@
 
 Aevy is a personal language-engineering project exploring how programming languages work internally. It includes a custom lexer, parser, Abstract Syntax Tree (AST), and interpreter, with a focus on readable syntax and incremental development.
 
-> **Project status:** Early-stage prototype — actively under development.
+> **Project status:** Experimental alpha (version 0.1.0). APIs and syntax may change; review the release checklist before relying on it for important work.
 
 ## Current Features
 
@@ -28,7 +28,9 @@ Aevy is a personal language-engineering project exploring how programming langua
 - **Dictionaries:** dictionary literals, key access and assignment, nested dictionaries, key iteration, and dictionary helper functions.
 - **Numeric Utilities:** `abs()`, `min()`, `max()`, `round()`, `sum()`, and `sort()` with argument validation.
 - **Dictionary Utilities:** `keys()`, `values()`, `has_key()`, and `remove_key()`.
-- **Command-Line Runner:** execute a `.aevy` source file with `python -m aevy path/to/file.aevy`.
+- **Module Imports:** import and execute another `.aevy` file with `import "helpers.aevy"`; repeated imports are cached and circular imports are reported.
+- **Text File I/O:** `read_text(path)`, `write_text(path, content)`, `append_text(path, content)`, and `file_exists(path)` operate on UTF-8 text files. Paths are restricted to the main program directory.
+- **Command-Line Runner:** execute a `.aevy` source file with `python -m aevy path/to/file.aevy` or the installed `aevy` command.
 
 ## Example Programs
 
@@ -66,6 +68,40 @@ Output:
 ```text
 120
 ```
+
+## Modules
+
+An import uses a quoted relative path to another `.aevy` source file. The imported module executes in the same interpreter environment, making its declared functions available to the importing program:
+
+`helpers.aevy`:
+
+```aevy
+func double(n) {
+    return n * 2
+}
+```
+
+`main.aevy`:
+
+```aevy
+import "helpers.aevy"
+show(double(21))
+```
+
+Run the main file with `python -m aevy main.aevy`. Imports are cached after execution; circular imports are reported as errors. Import paths are restricted to the directory containing the main program.
+
+## Text File I/O
+
+The file built-ins read and write UTF-8 text:
+
+```aevy
+write_text("notes.txt", "Hello")
+append_text("notes.txt", " Aevy")
+show(read_text("notes.txt"))
+show(file_exists("notes.txt"))
+```
+
+File paths are restricted to the directory containing the main program. `write_text()` replaces existing content; `append_text()` adds content at the end. File access can still fail due to operating-system permissions or other I/O errors, which are reported at runtime.
 
 ## User Input and Type Conversion
 
@@ -209,6 +245,8 @@ aevy/
 
 ### Run Aevy
 
+From a cloned repository, you can run the source directly using `PYTHONPATH=src` as shown below. To install a local command in a virtual environment, run `python -m pip install -e .`; this registers the `aevy` command. No third-party runtime dependencies are required.
+
 Clone the repository:
 
 ```bash
@@ -232,52 +270,30 @@ python -m aevy examples/hello.aevy
 
 The same file command works on macOS/Linux after setting `PYTHONPATH=src`, for example `PYTHONPATH=src python -m aevy examples/hello.aevy`. Use `python -m aevy --help` to see command usage.
 
-Run automated tests from the project root:
+Run automated tests from the project root (Windows PowerShell):
 
 ```powershell
+$env:PYTHONPATH = "src"
 python -m unittest discover -s tests -v
 ```
 
-The current entry point executes the source program configured in `src/aevy/__main__.py`.
+On macOS/Linux, use `PYTHONPATH=src python -m unittest discover -s tests -v`.
 
 ## Roadmap
 
-- [x] Lexer and token definitions
-- [x] Parser and AST representation
-- [x] Variables and assignment
-- [x] Arithmetic, comparison, and logical expressions
-- [x] Conditional statements
-- [x] Loops and loop-control statements
-- [x] Function declarations and calls
-- [x] Return values
-- [x] Recursive function execution
-- [x] Classes and objects
-- [x] Constructors, attributes, and instance methods
-- [x] Single inheritance, method overriding, polymorphism, and `super` calls
-- [ ] Input handling and expanded built-in functions
-- [x] Lexer/parser diagnostics and source-aware runtime error locations
-- [x] Automated regression and edge-case tests
-- [ ] Packaging and a more convenient command-line interface
-- [ ] First stable prototype release
+- [x] Lexer, parser, AST, and interpreter
+- [x] Variables, expressions, conditions, and loops
+- [x] Functions, recursion, classes, inheritance, and polymorphism
+- [x] Lists, dictionaries, and standard-library helpers
+- [x] Source-aware diagnostics and CLI file execution
+- [x] Relative `.aevy` imports and text file I/O
+- [x] Automated regression tests and release checklist
+- [x] Basic Python package metadata and CI workflow
+- [ ] Broader compatibility, security review, and a stable 1.0 release
 
-## Automated Tests
+## Release readiness
 
-Run the interpreter regression tests from the project root:
-
-```powershell
-python -m unittest discover -s tests -v
-```
-
-The suite contains 29 tests covering arithmetic, functions and return values, recursion,
-range loops, inheritance, `super` calls, private and public attributes, loop edge cases,
-syntax diagnostics, and source-aware runtime errors. Add a regression test whenever a
-language feature or bug fix is introduced.
-
-## Development Progress
-
-**Estimated progress: approximately 35% toward a more complete, usable first version.**
-
-This is a subjective development estimate, not a measured completion percentage. Core language execution and recursive functions work, while object-oriented features, comprehensive testing, diagnostics, and developer tooling remain unfinished.
+Aevy remains an experimental alpha. The automated suite checks the implemented behavior but does not prove full language correctness or production security. Before a public release, follow [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md), verify the package in a clean environment, and ensure the language specification matches the implementation.
 
 ## Language Specification
 

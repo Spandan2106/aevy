@@ -1,26 +1,16 @@
 
 # Aevy
 
-```{=html}
 <p align="center">
-```
-`<strong>`{=html}A programming language built from scratch in
-Python.`</strong>`{=html}`<br>`{=html} An experimental
-language-engineering project exploring how source code becomes
-executable behavior.
-```{=html}
+  <strong>A programming language built from scratch in Python.</strong><br>
+  An experimental language-engineering project exploring how source code becomes executable behavior.
 </p>
-```
-```{=html}
+
 <p align="center">
-```
-`<a href="https://github.com/Spandan2106/aevy/releases">`{=html}Latest
-release: v0.1.0`</a>`{=html} · `<a href="SPEC.md">`{=html}Language
-specification`</a>`{=html} ·
-`<a href="RELEASE_CHECKLIST.md">`{=html}Release checklist`</a>`{=html}
-```{=html}
+  <a href="https://github.com/Spandan2106/aevy/releases">Latest release: v0.1.0</a> · 
+  <a href="SPEC.md">Language specification</a> · 
+  <a href="RELEASE_CHECKLIST.md">Release checklist</a>
 </p>
-```
 
 ------------------------------------------------------------------------
 
